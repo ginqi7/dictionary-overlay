@@ -5,6 +5,7 @@ import re
 import sys
 import os
 from pathlib import Path
+from typing import Optional
 import websocket_bridge_python
 from tokenizers import Tokenizer
 from tokenizers.models import BPE
@@ -16,6 +17,8 @@ from threading import Timer
 page: Page = None
 playwright: Playwright
 
+tokenizer = Tokenizer(BPE())
+pre_tokenizer = Whitespace()
 dictionary = {}
 dictionary_file_path = os.path.join(sys.path[0], "dictionary.json")
 knownwords_file_path = os.path.join(sys.path[0], "knownwords.txt")
@@ -40,7 +43,7 @@ async def launch_deepl():
     await page.goto("https://www.deepl.com/translator")
 
 
-async def translate(word):
+async def translate(word: str):
     content = word
     if page == None:
         await launch_deepl()
@@ -58,8 +61,6 @@ async def translate(word):
 
 async def parse(sentence):
     only_unknown_words = await bridge.get_emacs_var("dictionary-overlay-just-unknown-words")
-    tokenizer = Tokenizer(BPE())
-    pre_tokenizer = Whitespace()
     tokens = pre_tokenizer.pre_tokenize_str(sentence)
     if only_unknown_words == 'true':
         print(1)
@@ -104,12 +105,12 @@ def dump_dictionary_to_file():
 async def on_message(message):
     info = json.loads(message)
     cmd = info[1][0].strip()
-    sentenceStr = info[1][1]
+    sentence = info[1][1]
     point = info[1][2]
     if cmd == "render":
-        await render(sentenceStr)
+        await render(sentence)
     elif cmd == "jump_next_unkown_word":
-        await jump_next_unkown_word(sentenceStr, point)
+        await jump_next_unkown_word(sentence, point)
     elif cmd == "jump_prev_unkown_word":
         await jump_prev_unkown_word()
     elif cmd == "mark_word_know":
@@ -122,12 +123,19 @@ async def on_message(message):
         if word in known_words:
             known_words.remove(word)
         unknown_words.add(word)
+    elif cmd == "mark_buffer":
+        mark_buffer(sentence)
     else:
         print("not fount handler for {cmd}".format(cmd=cmd), flush=True)
 
+def mark_buffer(sentence: str):
+    tokens = pre_tokenizer.pre_tokenize_str(sentence)
+    words = [token[0].lower() for token in tokens if token[0].lower() not in unknown_words]
+    for word in words:
+        known_words.add(word)
 
-async def jump_next_unkown_word(sentenceStr, point):
-    tokens = await parse(sentenceStr)
+async def jump_next_unkown_word(sentence: str, point: int):
+    tokens = await parse(sentence)
     # todo: write this with build-in 'any' function
     for token in tokens:
         begin = token[1][0] + 1
@@ -173,8 +181,7 @@ async def run_and_log(cmd):
 async def main():
     snapshot()
     global bridge
-    bridge = websocket_bridge.bridge_app_regist(on_message)
-    #await launch_deepl()
+    bridge = websocket_bridge_python.bridge_app_regist(on_message)
     await bridge.start()
 
 

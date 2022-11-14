@@ -79,6 +79,13 @@
   (dictionary-overlay-render-buffer)
   )
 
+(defun dictionary-overlay-mark-buffer()
+  (interactive)
+  (websocket-bridge-call-buffer "mark_buffer")
+  
+  (dictionary-overlay-render-buffer)
+  )
+
 
 (defun dictionary-add-overlay-from(begin end word display)
 
