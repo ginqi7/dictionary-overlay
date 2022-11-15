@@ -20,79 +20,137 @@
 
 ;;; Commentary:
 
-;; 
+;;
+
+;;; Commands:
+;;
+;; Below are complete command list:
+;;
+;;  `dictionary-overlay-start'
+;;    Start dictionary-overlay.
+;;  `dictionary-overlay-restart'
+;;    Restart dictionary-overlay and show process.
+;;  `dictionary-overlay-render-buffer'
+;;    Render current buffer.
+;;  `dictionary-overlay-jump-next-unkown-word'
+;;    Jump to next unkown word.
+;;  `dictionary-overlay-jump-prev-unkown-word'
+;;    Jump to prev unkown word.
+;;  `dictionary-overlay-mark-word-know'
+;;    Mark current word know.
+;;  `dictionary-overlay-mark-word-unknow'
+;;    Mark current word unknow.
+;;  `dictionary-overlay-mark-buffer'
+;;    Mark all words in buffer kwon, except words in `kownwords' list.
+;;  `dictionary-overlay-install'
+;;    Install all python dependencies.
+;;
+;;; Customizable Options:
+;;
+;; Below are customizable option list:
+;;
 
 ;;; Code:
 
 (require 'websocket-bridge)
+
 (setq dictionary-overlay-py-path
       (concat
        (file-name-directory load-file-name)
        "dictionary-overlay.py"))
 
+(setq dictionary-overlay-py-requirements-path
+      (concat
+       (file-name-directory load-file-name)
+       "requirements.txt"))
+
 (defvar dictionary-overlay-just-unknown-words t)
 
+(defvar dictionary-overlay-translate-engine 'youdao)
+
 (defun dictionary-overlay-start ()
-  "Start dictionary overlay."
+  "Start dictionary-overlay."
   (interactive)
   (websocket-bridge-app-start "dictionary-overlay" "python" dictionary-overlay-py-path))
 
 (defun dictionary-overlay-restart ()
-  "Restart websocket bridge grammarly and show process."
+  "Restart dictionary-overlay and show process."
   (interactive)
   (websocket-bridge-app-exit "dictionary-overlay")
   (dictionary-overlay-start)
   (split-window-below)
-  (websocket-bridge-app-open-buffer "dictionary-overlay")
-  )
+  (websocket-bridge-app-open-buffer "dictionary-overlay"))
 
 
 (defun websocket-bridge-call-buffer(func-name &optional word)
-  "Call grammarly function on current buffer by FUNC-NAME."
+  "Call grammarly function on current buffer by FUNC-NAME.
+And with optional WORD"
   (websocket-bridge-call "dictionary-overlay" func-name
                          (buffer-string)
                          (point)
                          word))
 
 (defun dictionary-overlay-render-buffer ()
+  "Render current buffer."
   (interactive)
   (remove-overlays)
   (websocket-bridge-call-buffer "render"))
 
 
-(defun dictionary-overlay-jump-next-unkown-word () (interactive)
-       (websocket-bridge-call-buffer "jump_next_unkown_word"))
+(defun dictionary-overlay-jump-next-unkown-word ()
+  "Jump to next unkown word."
+  (interactive)
+  (websocket-bridge-call-buffer "jump_next_unkown_word"))
 
-(defun dictionary-overlay-jump-prev-unkown-word () (interactive))
+(defun dictionary-overlay-jump-prev-unkown-word ()
+  "Jump to prev unkown word."
+  (interactive))
 
 (defun dictionary-overlay-mark-word-know()
+  "Mark current word know."
   (interactive)
   (let ((word (downcase (thing-at-point 'word t))))
     (websocket-bridge-call-buffer "mark_word_know" word))
-  (dictionary-overlay-render-buffer)
-  )
+  (dictionary-overlay-render-buffer))
 
 (defun dictionary-overlay-mark-word-unknow()
+  "Mark current word unknow."
   (interactive)
   (let ((word (downcase (thing-at-point 'word t))))
     (websocket-bridge-call-buffer "mark_word_unknow" word))
-  (dictionary-overlay-render-buffer)
-  )
+  (dictionary-overlay-render-buffer))
 
 (defun dictionary-overlay-mark-buffer()
+  "Mark all words in buffer kwon, except words in `kownwords' list."
   (interactive)
   (websocket-bridge-call-buffer "mark_buffer")
-  
-  (dictionary-overlay-render-buffer)
-  )
+
+  (dictionary-overlay-render-buffer))
 
 
 (defun dictionary-add-overlay-from(begin end word display)
-
+  "Add overlay from BEGIN to END.
+WORD is original word.
+DISPLAY is english with chinese."
   (let ((ov (make-overlay begin end)))
-    (overlay-put ov 'display display)
-    ))
+    (overlay-put ov 'display display)))
+
+(defun dictionary-overlay-install ()
+  "Install all python dependencies."
+  (interactive)
+  (let ((process-environment
+         (cons "NO_COLOR=true" process-environment))
+        (process-buffer-name "*dictionary-overlay-install*"))
+    (set-process-sentinel
+     (start-process "dictionary-overlay-install" process-buffer-name
+                    "pip" "install" "-r" dictionary-overlay-py-requirements-path)
+     (lambda (p _m)
+       (when (eq 0 (process-exit-status p))
+         (with-current-buffer (process-buffer p)
+           (ansi-color-apply-on-region (point-min) (point-max))))))
+    (split-window-below)
+    (other-window 1)
+   	(switch-to-buffer process-buffer-name)))
 
 (provide 'dictionary-overlay)
 ;;; dictionary-overlay.el ends here
-

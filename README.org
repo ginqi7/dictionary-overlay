@@ -1,0 +1,66 @@
+#+title: Dictionary-overlay
+
+* 目标
+辅助英文较弱的Emacser 进行英文阅读。提供了两种能力：
+1. 生词本提示：自定义“生词本”，阅读英文文章时，通过 overlay 给生词添加中文翻译。
+2. 透析阅读法：自定义“熟词本”，阅读英文文章时，通过overlay 翻译当前文章所有未标记为“熟词”的单词
+
+   #+caption: Example
+  [[file:images/2022-11-15_21-23-58_screenshot.png]]
+
+* Install
+** [[https://github.com/ginqi7/websocket-bridge][websocket-bridge]]
+用于Emacs 与外部应用进行 websocket 通信
+** Python 相关包
+插件通过python 编写，需要安装 python3
+- [[https://github.com/ginqi7/websocket-bridge-python][websocket-bridge-python]] websocket-bridge 的python 客户端
+- [[https://github.com/huggingface/tokenizers][tokenizers]] python 分词工具
+- [[https://github.com/microsoft/playwright-python][playwright-python]] automate Chromium 用于在线翻译
+
+你可以使用 ~dictionary-overlay-install~ 来安装相关的 python 包。
+
+** [[https://www.chromium.org/Home/][Chromium]] 
+当前使用 playwright-python 操作 Chromium 来获取在线翻译。
+
+playwright-python 还支持 WebKit, Firefox 。后续考虑支持不同的浏览器。
+  
+
+** Download Dictionary-overlay
+#+begin_src shell
+git clone --depth=1 -b main https://github.com/ginqi7/dictionary-overlay ~/.emacs.d/site-lisp/dictionary-overlay/
+#+end_src
+
+** Add to ~/.emacs
+#+begin_src emacs-lisp
+  (add-to-list 'load-path "~/.emacs.d/site-lisp/dictionary-overlay/")
+  (require 'dictionary-overlay)
+#+end_src
+
+* Commands
+| command                                  | Action                                              |
+|------------------------------------------+-----------------------------------------------------|
+| dictionary-overlay-start                 | 启动 dictionary-overlay 应用                        |
+| dictionary-overlay-restart               | 重启 dictionary-overlay 应用                        |
+| dictionary-overlay-render-buffer         | 使用翻译渲染当前buffer                              |
+| dictionary-overlay-jump-next-unkown-word | 跳转到下一个生词                                    |
+| dictionary-overlay-jump-prev-unkown-word | 跳转到上一个生词                                    |
+| dictionary-overlay-mark-word-know        | 标记当前单词为“已知”                                |
+| dictionary-overlay-mark-word-unknow      | 标记当前单词为“生词”                                |
+| dictionary-overlay-mark-buffer           | 标签当前buffer 中所有未标记为“生词”的单词全为“已知” |
+| dictionary-overlay-install               | 安装dictionary-overlay 所依赖的python 包            |
+
+* Variables
+
+| variable | 作用 |
+| dictionary-overlay-just-unknown-words         | t 时使用“生词本”模式，nil 为“透析阅读”模式，默认为t |
+| dictionary-overlay-translate-engine dictionary-overlay-translate-engine                                                                                  |  支持 youdao 和 deepl, 默认为 youdao |
+
+* 使用方法探讨
+
+默认使用“生词本”模式，阅读英文文章时，需要手动添加生词（~dictionary-overlay-mark-word-unknow~）。可以和你的“查询单词”的快捷键保持在一起。那么你下次遇到生词时，会自动展示出生词。
+
+当你阅读完一篇文章以后，可以把当前buffer 中所有未标记为unknow的单词标记为know (~dictionary-overlay-mark-buffer~)
+
+当一个生词反复出现，你觉得自己已经认识了它，可以标记为 know （~dictionary-overlay-mark-word-know~），下次不再展示翻译。
+
+当你阅读了足够多的文章，你应该积累了一定量的 know-words ，此时，或许你可以尝试使用"透析阅读法"（~(setq dictionary-overlay-just-unknown-words nil)~）将自动展示，“或许”你不认识的单词。

@@ -1,0 +1,6 @@
+greenlet==1.1.3
+playwright==1.27.1
+pyee==8.1.0
+tokenizers==0.13.2
+websocket-bridge-python==0.0.2
+websockets==10.4

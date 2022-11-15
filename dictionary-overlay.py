@@ -41,9 +41,28 @@ async def launch_deepl():
     global page
     page = await context.new_page()
     await page.goto("https://www.deepl.com/translator")
-
-
+    
+async def launch_youdao():
+    global playwright
+    playwright = await async_playwright().start()
+    browser = await playwright.chromium.launch(headless=False)
+    context = await browser.new_context()
+    global page
+    page = await context.new_page()
+    await page.goto("https://fanyi.youdao.com/")
+    
+    
 async def translate(word: str):
+    translate_engine = await bridge.get_emacs_var("dictionary-overlay-translate-engine")
+    print(translate_engine)
+    if translate_engine == "\"deepl\"":
+        return await translate_deepl(word)
+    elif translate_engine == "\"youdao\"":
+        return await translate_youdao(word)
+    raise RuntimeError(f'Not support translate engine:[{translate_engine}]')
+
+
+async def translate_deepl(word: str):
     content = word
     if page == None:
         await launch_deepl()
@@ -58,19 +77,26 @@ async def translate(word: str):
     )
     return await page.eval_on_selector(".lmt__target_textarea", "el => el.value.trim()")
 
+async def translate_youdao(word: str) -> str:
+    if page == None:
+        await launch_youdao()
+    await page.eval_on_selector("#transTarget", "el => el.innerHTML = ''")
+    await page.eval_on_selector("#inputOriginal", "el => el.value = ''")
+    await page.type("#inputOriginal", word)
+    element = await page.wait_for_selector("#transTarget > p > span")
+    return (await element.inner_html()).strip()
 
-async def parse(sentence):
+async def parse(sentence: str):
     only_unknown_words = await bridge.get_emacs_var("dictionary-overlay-just-unknown-words")
     tokens = pre_tokenizer.pre_tokenize_str(sentence)
     if only_unknown_words == 'true':
-        print(1)
         tokens = [token for token in tokens if token[0].lower() in unknown_words]
     else:
         tokens = [token for token in tokens if new_word_p(token[0].lower())]
     return tokens
 
 
-def new_word_p(word):
+def new_word_p(word: str) -> bool:
     if len(word) < 3:
         return False
     if re.match(r"[\W\d]", word, re.M | re.I):
