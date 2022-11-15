@@ -57,10 +57,10 @@ git clone --depth=1 -b main https://github.com/ginqi7/dictionary-overlay ~/.emac
 
 * 使用方法探讨
 
-默认使用“生词本”模式，阅读英文文章时，需要手动添加生词（~dictionary-overlay-mark-word-unknow~）。可以和你的“查询单词”的快捷键保持在一起。那么你下次遇到生词时，会自动展示出生词。
+默认使用“生词本”模式，阅读英文文章时，需要手动添加生词（ ~dictionary-overlay-mark-word-unknow~ ）。可以和你的“查询单词”的快捷键保持在一起。那么你下次遇到生词时，会自动展示出生词。
 
-当你阅读完一篇文章以后，可以把当前buffer 中所有未标记为unknow的单词标记为know (~dictionary-overlay-mark-buffer~)
+当你阅读完一篇文章以后，可以把当前buffer 中所有未标记为unknow的单词标记为know ( ~dictionary-overlay-mark-buffer~ )
 
-当一个生词反复出现，你觉得自己已经认识了它，可以标记为 know （~dictionary-overlay-mark-word-know~），下次不再展示翻译。
+当一个生词反复出现，你觉得自己已经认识了它，可以标记为 know （ ~dictionary-overlay-mark-word-know~ ），下次不再展示翻译。
 
-当你阅读了足够多的文章，你应该积累了一定量的 know-words ，此时，或许你可以尝试使用"透析阅读法"（~(setq dictionary-overlay-just-unknown-words nil)~）将自动展示，“或许”你不认识的单词。
+当你阅读了足够多的文章，你应该积累了一定量的 know-words ，此时，或许你可以尝试使用"透析阅读法"（ ~(setq dictionary-overlay-just-unknown-words nil)~ ）将自动展示，“或许”你不认识的单词。
