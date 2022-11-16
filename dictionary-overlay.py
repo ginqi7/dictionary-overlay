@@ -4,6 +4,7 @@ import json
 import re
 import sys
 import os
+import json                
 from pathlib import Path
 from typing import Optional
 import websocket_bridge_python
@@ -11,11 +12,21 @@ from tokenizers import Tokenizer
 from tokenizers.models import BPE
 from tokenizers.pre_tokenizers import Whitespace
 from tokenizers.trainers import BpeTrainer
-from playwright.async_api import Playwright, async_playwright, Page
 from threading import Timer
+from pystardict import Dictionary
 
-page: Page = None
-playwright: Playwright
+sdcv_dictionary_path = os.path.join(os.path.dirname(__file__), "resources", "kdic-ec-11w")
+sdcv_dictionary = Dictionary(sdcv_dictionary_path, in_memory=True)
+                    
+sdcv_words = {}
+candidates = []
+for word in sdcv_dictionary.keys():
+    first_line_translation = sdcv_dictionary.dict[word].split()[0]
+    candidate_word  = word.lower().replace('\"', ' ')
+    candidate_translation = first_line_translation.split(".")[-1].split(";")[0]
+                    
+    sdcv_words[candidate_word] = candidate_translation
+
 
 tokenizer = Tokenizer(BPE())
 pre_tokenizer = Whitespace()
@@ -31,62 +42,6 @@ if dictionary_file.is_file():
 
 known_words = set(open(knownwords_file_path).read().split())
 unknown_words = set(open(unknownwords_file_path).read().split())
-
-
-async def launch_deepl():
-    global playwright
-    playwright = await async_playwright().start()
-    headless = await bridge.get_emacs_var("dictionary-overlay-headless") == "true"
-    browser = await playwright.chromium.launch(headless=headless)
-    context = await browser.new_context()
-    global page
-    page = await context.new_page()
-    await page.goto("https://www.deepl.com/translator")
-    
-async def launch_youdao():
-    global playwright
-    playwright = await async_playwright().start()
-    headless = await bridge.get_emacs_var("dictionary-overlay-headless") == "true"
-    browser = await playwright.chromium.launch(headless=headless)
-    context = await browser.new_context()
-    global page
-    page = await context.new_page()
-    await page.goto("https://fanyi.youdao.com/")
-    
-    
-async def translate(word: str):
-    translate_engine = await bridge.get_emacs_var("dictionary-overlay-translate-engine")
-    print(translate_engine)
-    if translate_engine == "\"deepl\"":
-        return await translate_deepl(word)
-    elif translate_engine == "\"youdao\"":
-        return await translate_youdao(word)
-    raise RuntimeError(f'Not support translate engine:[{translate_engine}]')
-
-
-async def translate_deepl(word: str):
-    content = word
-    if page == None:
-        await launch_deepl()
-    await page.eval_on_selector(".lmt__target_textarea", "el => el.value = ''")
-    await page.eval_on_selector(
-        ".lmt__source_textarea", "(el, content) => el.value = content", content
-    )
-    await page.type(".lmt__source_textarea", "\n")
-
-    await page.wait_for_function(
-        'document.querySelector(".lmt__target_textarea").value != ""'
-    )
-    return await page.eval_on_selector(".lmt__target_textarea", "el => el.value.trim()")
-
-async def translate_youdao(word: str) -> str:
-    if page == None:
-        await launch_youdao()
-    await page.eval_on_selector("#transTarget", "el => el.innerHTML = ''")
-    await page.eval_on_selector("#inputOriginal", "el => el.value = ''")
-    await page.type("#inputOriginal", word)
-    element = await page.wait_for_selector("#transTarget > p > span")
-    return (await element.inner_html()).strip()
 
 async def parse(sentence: str):
     only_unknown_words = await bridge.get_emacs_var("dictionary-overlay-just-unknown-words")
@@ -162,6 +117,14 @@ def mark_buffer(sentence: str):
     for word in words:
         known_words.add(word)
 
+def get_command_result(command_string, cwd=None):
+    import subprocess
+    process = subprocess.Popen(command_string, cwd=cwd, shell=True, text=True,
+                               stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                               encoding="utf-8")
+    ret = process.wait()
+    return "".join((process.stdout if ret == 0 else process.stderr).readlines()).strip()    # type: ignore
+
 async def jump_next_unknown_word(sentence: str, point: int):
     tokens = await parse(sentence)
     # todo: write this with build-in 'any' function
@@ -182,7 +145,13 @@ async def render(message):
             if word in dictionary:
                 chinese = dictionary[word]
             else:
-                chinese = await translate(word)
+                
+                if word in sdcv_words:
+                    chinese = sdcv_words[word]
+                else:
+                    result = get_command_result("crow -t zh-CN --json -e google '%s'".format(word))
+                    chinese = json.loads(result)["translation"]
+                
                 dictionary[word] = chinese
             await render_word(token, chinese)
     except Exception as e:
