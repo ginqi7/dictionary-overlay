@@ -1,19 +1,20 @@
-import asyncio
-import time
-import json
-import re
-import sys
-import os
-import json                
 from pathlib import Path
-from typing import Optional
-import websocket_bridge_python
+from pystardict import Dictionary
+from threading import Timer
 from tokenizers import Tokenizer
 from tokenizers.models import BPE
 from tokenizers.pre_tokenizers import Whitespace
 from tokenizers.trainers import BpeTrainer
-from threading import Timer
-from pystardict import Dictionary
+from typing import Optional
+
+import asyncio
+import json
+import json                
+import os
+import re
+import sys
+import time
+import websocket_bridge_python
 
 sdcv_dictionary_path = os.path.join(os.path.dirname(__file__), "resources", "kdic-ec-11w")
 sdcv_dictionary = Dictionary(sdcv_dictionary_path, in_memory=True)
