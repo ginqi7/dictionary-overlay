@@ -15,15 +15,8 @@
 插件通过python 编写，需要安装 python3
 - [[https://github.com/ginqi7/websocket-bridge-python][websocket-bridge-python]] websocket-bridge 的python 客户端
 - [[https://github.com/huggingface/tokenizers][tokenizers]] python 分词工具
-- [[https://github.com/microsoft/playwright-python][playwright-python]] automate Chromium 用于在线翻译
 
 你可以使用 ~dictionary-overlay-install~ 来安装相关的 python 包。
-
-** [[https://www.chromium.org/Home/][Chromium]] 
-当前使用 playwright-python 操作 Chromium 来获取在线翻译。
-
-playwright-python 还支持 WebKit, Firefox 。后续考虑支持不同的浏览器。
-  
 
 ** Download Dictionary-overlay
 #+begin_src shell
