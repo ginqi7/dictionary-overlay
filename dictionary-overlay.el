@@ -71,7 +71,7 @@
 (defun dictionary-overlay-start ()
   "Start dictionary-overlay."
   (interactive)
-  (websocket-bridge-app-start "dictionary-overlay" "python" dictionary-overlay-py-path))
+  (websocket-bridge-app-start "dictionary-overlay" "python3" dictionary-overlay-py-path))
 
 (defun dictionary-overlay-restart ()
   "Restart dictionary-overlay and show process."
