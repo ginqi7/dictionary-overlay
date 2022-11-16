@@ -95,7 +95,7 @@ async def on_message(message):
     elif cmd == "jump_next_unknown_word":
         await jump_next_unknown_word(sentence, point)
     elif cmd == "jump_prev_unknown_word":
-        await jump_prev_unknown_word()
+        await jump_prev_unknown_word(sentence, point)
     elif cmd == "mark_word_known":
         word = info[1][3]
         if word in unknown_words:
@@ -135,6 +135,16 @@ async def jump_next_unknown_word(sentence: str, point: int):
             await run_and_log(cmd)
             break
 
+async def jump_prev_unknown_word(sentence: str, point: int):
+    tokens = await parse(sentence)
+    # todo: write this with build-in 'any' function
+    for token in reversed(tokens):
+        begin = token[1][0] + 1
+        if point > begin:
+            cmd = "(goto-char {begin})".format(begin=begin)
+            await run_and_log(cmd)
+            break
+        
 def translate(word: str):
     if word in sdcv_words:
         chinese = sdcv_words[word]

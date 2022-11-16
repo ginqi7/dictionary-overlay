@@ -106,7 +106,8 @@ And with optional WORD"
 
 (defun dictionary-overlay-jump-prev-unknown-word ()
   "Jump to prev unknown word."
-  (interactive))
+  (interactive)
+  (websocket-bridge-call-buffer "jump_prev_unknown_word"))
 
 (defun dictionary-overlay-mark-word-known()
   "Mark current word known."
