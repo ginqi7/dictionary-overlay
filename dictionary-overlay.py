@@ -24,7 +24,7 @@ for word in sdcv_dictionary.keys():
     first_line_translation = sdcv_dictionary.dict[word].split()[0]
     candidate_word  = word.lower().replace('\"', ' ')
     candidate_translation = first_line_translation.split(".")[-1].split(";")[0]
-                    
+    
     sdcv_words[candidate_word] = candidate_translation
 
 
@@ -135,24 +135,29 @@ async def jump_next_unknown_word(sentence: str, point: int):
             await run_and_log(cmd)
             break
 
-
+def translate(word: str):
+    if word in sdcv_words:
+        chinese = sdcv_words[word]
+    else:
+        result = get_command_result("crow -t zh-CN --json -e google '{}'".format(word))
+        chinese = json.loads(result)["translation"]
+    
+    return chinese
+        
 async def render(message):
     try:
         tokens = await parse(message)
         for token in tokens:
             word = token[0].lower()
-            chinese: str
+            chinese = ""
+            
             if word in dictionary:
                 chinese = dictionary[word]
-            else:
                 
-                if word in sdcv_words:
-                    chinese = sdcv_words[word]
-                else:
-                    result = get_command_result("crow -t zh-CN --json -e google '%s'".format(word))
-                    chinese = json.loads(result)["translation"]
-                
+            if chinese == "%s" or chinese == "":
+                chinese = translate(word)
                 dictionary[word] = chinese
+                
             await render_word(token, chinese)
     except Exception as e:
         print(e)
