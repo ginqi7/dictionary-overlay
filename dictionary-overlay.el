@@ -68,6 +68,8 @@
 
 (defvar dictionary-overlay-translate-engine 'youdao)
 
+(defvar dictionary-overlay-headless t)
+
 (defun dictionary-overlay-start ()
   "Start dictionary-overlay."
   (interactive)

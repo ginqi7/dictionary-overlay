@@ -36,7 +36,8 @@ unknown_words = set(open(unknownwords_file_path).read().split())
 async def launch_deepl():
     global playwright
     playwright = await async_playwright().start()
-    browser = await playwright.chromium.launch(headless=False)
+    headless = await bridge.get_emacs_var("dictionary-overlay-headless") == "true"
+    browser = await playwright.chromium.launch(headless=headless)
     context = await browser.new_context()
     global page
     page = await context.new_page()
@@ -45,7 +46,8 @@ async def launch_deepl():
 async def launch_youdao():
     global playwright
     playwright = await async_playwright().start()
-    browser = await playwright.chromium.launch(headless=False)
+    headless = await bridge.get_emacs_var("dictionary-overlay-headless") == "true"
+    browser = await playwright.chromium.launch(headless=headless)
     context = await browser.new_context()
     global page
     page = await context.new_page()

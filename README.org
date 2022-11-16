@@ -51,9 +51,10 @@ git clone --depth=1 -b main https://github.com/ginqi7/dictionary-overlay ~/.emac
 
 * Variables
 
-| variable | 作用 |
-| dictionary-overlay-just-unknown-words         | t 时使用“生词本”模式，nil 为“透析阅读”模式，默认为t |
-| dictionary-overlay-translate-engine dictionary-overlay-translate-engine                                                                                  |  支持 youdao 和 deepl, 默认为 youdao |
+| variable                                                                | 作用                                                |
+| dictionary-overlay-just-unknown-words                                   | t 时使用“生词本”模式，nil 为“透析阅读”模式，默认为t |
+| dictionary-overlay-translate-engine dictionary-overlay-translate-engine | 支持 youdao 和 deepl, 默认为 youdao                 |
+| dictionary-overlay-headless                                                                        |  启动的浏览器是否 headless, 默认为 t, nil 则会显示启动的浏览器                       |
 
 * 使用方法探讨
 
