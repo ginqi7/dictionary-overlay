@@ -137,16 +137,16 @@ async def on_message(message):
     point = info[1][2]
     if cmd == "render":
         await render(sentence)
-    elif cmd == "jump_next_unkown_word":
-        await jump_next_unkown_word(sentence, point)
-    elif cmd == "jump_prev_unkown_word":
-        await jump_prev_unkown_word()
-    elif cmd == "mark_word_know":
+    elif cmd == "jump_next_unknown_word":
+        await jump_next_unknown_word(sentence, point)
+    elif cmd == "jump_prev_unknown_word":
+        await jump_prev_unknown_word()
+    elif cmd == "mark_word_known":
         word = info[1][3]
         if word in unknown_words:
             unknown_words.remove(word)
         known_words.add(word)
-    elif cmd == "mark_word_unknow":
+    elif cmd == "mark_word_unknown":
         word = info[1][3]
         if word in known_words:
             known_words.remove(word)
@@ -162,7 +162,7 @@ def mark_buffer(sentence: str):
     for word in words:
         known_words.add(word)
 
-async def jump_next_unkown_word(sentence: str, point: int):
+async def jump_next_unknown_word(sentence: str, point: int):
     tokens = await parse(sentence)
     # todo: write this with build-in 'any' function
     for token in tokens:
