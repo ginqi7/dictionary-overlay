@@ -15,6 +15,7 @@ import re
 import sys
 import time
 import websocket_bridge_python
+ 
 
 sdcv_dictionary_path = os.path.join(
     os.path.dirname(__file__), "resources", "kdic-ec-11w"
@@ -252,7 +253,7 @@ async def init_user_data():
     dictionary_file_path = os.path.join(user_data_directory, "dictionary.json")
     knownwords_file_path = os.path.join(user_data_directory, "knownwords.txt")
     unknownwords_file_path = os.path.join(user_data_directory, "unknownwords.txt")
-    create_user_data_file_if_not_exist(dictionary_file_path)
+    create_user_data_file_if_not_exist(dictionary_file_path, "{}")
     create_user_data_file_if_not_exist(knownwords_file_path)
     create_user_data_file_if_not_exist(unknownwords_file_path)
     with open(dictionary_file_path, "r") as f: dictionary = json.load(f)
@@ -266,9 +267,11 @@ def create_user_data_directory_if_not_exist(user_data_directory: str):
         os.mkdir(user_data_directory)
         print(f"[dictionary-overlay] auto create user data directory {user_data_directory}")   
         
-def create_user_data_file_if_not_exist(data_file_path: str):
+def create_user_data_file_if_not_exist(data_file_path: str, content=None):
     if not os.path.isfile(data_file_path):
-        open(data_file_path,"w").close() 
+        with open(data_file_path, "w") as f: 
+            if content:
+                f.write(content)
         print(f"[dictionary-overlay] auto create user data file {data_file_path}")
 
 asyncio.run(main())
