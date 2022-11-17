@@ -41,9 +41,11 @@
 ;;  `dictionary-overlay-mark-word-unknown'
 ;;    Mark current word unknown.
 ;;  `dictionary-overlay-mark-buffer'
-;;    Mark all words in buffer knwon, except words in `knownwords' list.
+;;    Mark all words in buffer kwon, except words in `knownwords' list.
 ;;  `dictionary-overlay-install'
 ;;    Install all python dependencies.
+;;  `dictionary-overlay-install-google-translate'
+;;    Install all google-translate.
 ;;
 ;;; Customizable Options:
 ;;
@@ -152,6 +154,30 @@ DISPLAY is english with chinese."
     (split-window-below)
     (other-window 1)
     (switch-to-buffer process-buffer-name)))
+
+(defun dictionary-overlay-install-google-translate ()
+  "Install all google-translate."
+  (interactive)
+  (let* ((process-environment
+          (cons "NO_COLOR=true" process-environment))
+         (process-buffer-name "*dictionary-overlay-install*")
+         (temp-install-directory
+          (make-temp-file "install-google-translate" t))
+         (process-cmd
+          (format "git clone https://git.ookami.one/cgit/google-translate/ %s; cd %s; make install" temp-install-directory temp-install-directory)
+
+          ))
+    (set-process-sentinel
+     (start-process-shell-command "dictionary-overlay-install-google-translate" process-buffer-name
+                    process-cmd)
+     (lambda (p _m)
+       (when (eq 0 (process-exit-status p))
+         (with-current-buffer (process-buffer p)
+           (ansi-color-apply-on-region (point-min) (point-max))))))
+    (split-window-below)
+    (other-window 1)
+    (switch-to-buffer process-buffer-name)))
+
 
 (provide 'dictionary-overlay)
 ;;; dictionary-overlay.el ends here
