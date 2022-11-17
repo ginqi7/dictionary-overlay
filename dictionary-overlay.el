@@ -66,6 +66,8 @@
 
 (defvar dictionary-overlay-just-unknown-words t)
 
+(defvar dictionary-overlay-user-data-directory "~/.emacs.d/dictionary-overlay-data")
+
 (defun dictionary-overlay-start ()
   "Start dictionary-overlay."
   (interactive)
