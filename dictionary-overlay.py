@@ -15,6 +15,7 @@ import re
 import sys
 import time
 import websocket_bridge_python
+import shutil
  
 
 sdcv_dictionary_path = os.path.join(
@@ -161,42 +162,23 @@ async def jump_prev_unknown_word(sentence: str, point: int):
             await run_and_log(cmd)
             break
         
-        
-        
-def choose_web_trans_cmd() -> str:
-    global web_trans_cmd
-    try:
-        return web_trans_cmd
-    except NameError:
-        crow_cmd = 'crow'
-        if os.system(crow_cmd) == 0 :
-            web_trans_cmd = "crow_translate"
-        else:
-            import google_translate 
-            web_trans_cmd = "google_translate"
-    return web_trans_cmd
-
 def web_translate(word: str) -> str:
-    web_trans_cmd =  choose_web_trans_cmd()
-    if web_trans_cmd == "crow_translate":
+    if shutil.which("crow"):
         result = get_command_result(f'crow -t zh-CN --json -e google "{word}"')
-    elif web_trans_cmd == "google_translate":
-        import google_translate 
-        result = google_translate.translate(word, dst_lang='zh')
-        print(result)
-        return result["trans"][0]
+        return json.loads(result)["translation"]
     else:
-        raise Exception(f"you do not have a network dictionary installed and the queried word [{word}] is not in the local dictionary, please install crow-translate or google-translate")
-    return web_trans_cmd
+        try:
+            import google_translate     # type: ignore
+            result = google_translate.translate(word, dst_lang='zh')
+            return result["trans"][0]
+        except:
+            raise Exception(f"you do not have a network dictionary installed and the queried word [{word}] is not in the local dictionary, please install crow-translate or google-translate")
 
 def translate(word: str):
     if word in sdcv_words:
-        chinese = sdcv_words[word]
+        return sdcv_words[word]
     else:
-        chinese = web_translate(word)
-
-    return chinese
-
+        return web_translate(word)
 
 async def render(message):
     try:
