@@ -90,7 +90,8 @@ And with optional WORD"
   (websocket-bridge-call "dictionary-overlay" func-name
                          (buffer-string)
                          (point)
-                         word))
+                         word
+                         ))
 
 (defun dictionary-overlay-render-buffer ()
   "Render current buffer."
@@ -169,7 +170,7 @@ DISPLAY is english with chinese."
           ))
     (set-process-sentinel
      (start-process-shell-command "dictionary-overlay-install-google-translate" process-buffer-name
-                    process-cmd)
+                                  process-cmd)
      (lambda (p _m)
        (when (eq 0 (process-exit-status p))
          (with-current-buffer (process-buffer p)
@@ -178,6 +179,23 @@ DISPLAY is english with chinese."
     (other-window 1)
     (switch-to-buffer process-buffer-name)))
 
+
+(defun dictionary-overlay-modify-translate ()
+  (interactive)
+  (let ((word (downcase (thing-at-point 'word t))))
+    (websocket-bridge-call "dictionary-overlay"
+                           "modify_translate"
+                           word)))
+
+(defun dictionary-overlay-choose-translate (word candiates)
+  (interactive)
+  (let ((cadidate (completing-read "Choose translate" candiates)))
+    (websocket-bridge-call "dictionary-overlay"
+                           "update_translate"
+                           word
+                           cadidate)
+    )
+  (dictionary-overlay-render-buffer))
 
 (provide 'dictionary-overlay)
 ;;; dictionary-overlay.el ends here

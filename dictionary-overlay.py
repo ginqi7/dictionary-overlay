@@ -3,6 +3,7 @@ from threading import Timer
 from tokenizers import Tokenizer
 from tokenizers.models import BPE
 from tokenizers.pre_tokenizers import Whitespace
+from sexpdata import loads, dumps
 
 import asyncio
 import json
@@ -10,6 +11,7 @@ import os
 import re
 import shutil
 import websocket_bridge_python
+
  
 
 sdcv_dictionary_path = os.path.join(
@@ -22,8 +24,7 @@ candidates = []
 for word in sdcv_dictionary.keys():
     first_line_translation = sdcv_dictionary.dict[word].split()[0]
     candidate_word = word.lower().replace('"', " ")
-    candidate_translation = first_line_translation.split(".")[-1].split(";")[0]
-
+    candidate_translation = first_line_translation.split(".")[-1].split(";")
     sdcv_words[candidate_word] = candidate_translation
 
 
@@ -83,13 +84,16 @@ def snapshot():
 async def on_message(message):
     info = json.loads(message)
     cmd = info[1][0].strip()
-    sentence = info[1][1]
-    point = info[1][2]
     if cmd == "render":
+        sentence = info[1][1]
         await render(sentence)
     elif cmd == "jump_next_unknown_word":
+        sentence = info[1][1]
+        point = info[1][2]
         await jump_next_unknown_word(sentence, point)
     elif cmd == "jump_prev_unknown_word":
+        sentence = info[1][1]
+        point = info[1][2]
         await jump_prev_unknown_word(sentence, point)
     elif cmd == "mark_word_known":
         word = info[1][3]
@@ -103,9 +107,28 @@ async def on_message(message):
         unknown_words.add(word)
     elif cmd == "mark_buffer":
         mark_buffer(sentence)
+    elif cmd == "modify_translate":
+        word = info[1][1]
+        print(word)
+        await modify_translate(word)
+    elif cmd == "update_translate":
+        word = info[1][1]
+        mean = info[1][2]
+        dictionary[word]=mean
     else:
         print(f"not fount handler for {cmd}", flush=True)
 
+async def modify_translate(word: str):
+    all_means = []
+    if word in sdcv_words:
+        for mean in sdcv_words[word]:
+            all_means.append(mean)
+    #import google_translate     # type: ignore
+    #result = google_translate.translate(word, dst_lang='zh')
+    #all_means.append(result["trans"])
+    sexp = dumps(all_means)
+    cmd = f'(dictionary-overlay-choose-translate "{word}" \'{sexp})'
+    await run_and_log(cmd)
 
 def mark_buffer(sentence: str):
     tokens = pre_tokenizer.pre_tokenize_str(sentence)
@@ -167,7 +190,7 @@ def web_translate(word: str) -> str:
 
 def translate(word: str):
     if word in sdcv_words:
-        return sdcv_words[word]
+        return sdcv_words[word][0]
     else:
         return web_translate(word)
 
