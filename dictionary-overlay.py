@@ -1,19 +1,20 @@
-import asyncio
-import time
-import json
-import re
-import sys
-import os
-import json                
 from pathlib import Path
-from typing import Optional
-import websocket_bridge_python
+from pystardict import Dictionary
+from threading import Timer
 from tokenizers import Tokenizer
 from tokenizers.models import BPE
 from tokenizers.pre_tokenizers import Whitespace
 from tokenizers.trainers import BpeTrainer
-from threading import Timer
-from pystardict import Dictionary
+from typing import Optional
+
+import asyncio
+import json
+import json                
+import os
+import re
+import sys
+import time
+import websocket_bridge_python
 
 sdcv_dictionary_path = os.path.join(os.path.dirname(__file__), "resources", "kdic-ec-11w")
 sdcv_dictionary = Dictionary(sdcv_dictionary_path, in_memory=True)
@@ -95,7 +96,7 @@ async def on_message(message):
     elif cmd == "jump_next_unknown_word":
         await jump_next_unknown_word(sentence, point)
     elif cmd == "jump_prev_unknown_word":
-        await jump_prev_unknown_word()
+        await jump_prev_unknown_word(sentence, point)
     elif cmd == "mark_word_known":
         word = info[1][3]
         if word in unknown_words:
@@ -135,6 +136,16 @@ async def jump_next_unknown_word(sentence: str, point: int):
             await run_and_log(cmd)
             break
 
+async def jump_prev_unknown_word(sentence: str, point: int):
+    tokens = await parse(sentence)
+    # todo: write this with build-in 'any' function
+    for token in reversed(tokens):
+        begin = token[1][0] + 1
+        if point > begin:
+            cmd = "(goto-char {begin})".format(begin=begin)
+            await run_and_log(cmd)
+            break
+        
 def translate(word: str):
     if word in sdcv_words:
         chinese = sdcv_words[word]

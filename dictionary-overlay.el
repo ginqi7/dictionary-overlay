@@ -66,10 +66,6 @@
 
 (defvar dictionary-overlay-just-unknown-words t)
 
-(defvar dictionary-overlay-translate-engine 'youdao)
-
-(defvar dictionary-overlay-headless t)
-
 (defun dictionary-overlay-start ()
   "Start dictionary-overlay."
   (interactive)
@@ -106,7 +102,8 @@ And with optional WORD"
 
 (defun dictionary-overlay-jump-prev-unknown-word ()
   "Jump to prev unknown word."
-  (interactive))
+  (interactive)
+  (websocket-bridge-call-buffer "jump_prev_unknown_word"))
 
 (defun dictionary-overlay-mark-word-known()
   "Mark current word known."
