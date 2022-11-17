@@ -1,21 +1,15 @@
-from pathlib import Path
 from pystardict import Dictionary
 from threading import Timer
 from tokenizers import Tokenizer
 from tokenizers.models import BPE
 from tokenizers.pre_tokenizers import Whitespace
-from tokenizers.trainers import BpeTrainer
-from typing import Optional
 
 import asyncio
 import json
-import json
 import os
 import re
-import sys
-import time
-import websocket_bridge_python
 import shutil
+import websocket_bridge_python
  
 
 sdcv_dictionary_path = os.path.join(
@@ -70,23 +64,20 @@ def dump_unknownwords_to_file():
             f.write(f"{word}\n")
 
 
-def snapshot():
-    try: 
-        dictionary_file_path
-        knownwords_file_path
-        unknownwords_file_path
-    except NameError:  Timer(30, snapshot).start()
-    else:
-        dump_dictionary_to_file()
-        dump_knownwords_to_file()
-        dump_unknownwords_to_file()
-        Timer(10, snapshot).start()
-
-
 def dump_dictionary_to_file():
     with open(dictionary_file_path, "w", encoding="utf-8") as f:
         json.dump(dictionary, f, ensure_ascii=False, indent=4)
-
+        
+        
+def snapshot():
+    try:
+        dump_dictionary_to_file()
+        dump_knownwords_to_file()
+        dump_unknownwords_to_file()
+    except:
+        pass
+    
+    Timer(30, snapshot).start()
 
 # dispatch message recived from Emacs.
 async def on_message(message):
@@ -225,13 +216,8 @@ async def main():
 
 async def init_user_data():
     global dictionary_file_path, knownwords_file_path, unknownwords_file_path, known_words, unknown_words
-    try: bridge
-    except NameError:
-        await init_user_data()
-        return
     user_data_directory = await bridge.get_emacs_var("dictionary-overlay-user-data-directory")
     user_data_directory = os.path.expanduser(user_data_directory.strip('"'))
-    create_user_data_directory_if_not_exist(user_data_directory)
     dictionary_file_path = os.path.join(user_data_directory, "dictionary.json")
     knownwords_file_path = os.path.join(user_data_directory, "knownwords.txt")
     unknownwords_file_path = os.path.join(user_data_directory, "unknownwords.txt")
@@ -242,18 +228,17 @@ async def init_user_data():
     with open(knownwords_file_path, "r") as f:  known_words= set(f.read().split())
     with open(unknownwords_file_path, "r") as f:  unknown_words= set(f.read().split())
     
-def create_user_data_directory_if_not_exist(user_data_directory: str):
-    print(f"[dictionary-overlay] user data directory is {user_data_directory}")
-    if not os.path.isdir(user_data_directory):
-        print(f"[dictionary-overlay] user data directory {user_data_directory} not exist")
-        os.mkdir(user_data_directory)
-        print(f"[dictionary-overlay] auto create user data directory {user_data_directory}")   
-        
-def create_user_data_file_if_not_exist(data_file_path: str, content=None):
-    if not os.path.isfile(data_file_path):
-        with open(data_file_path, "w") as f: 
+def create_user_data_file_if_not_exist(path: str, content=None):
+    if not os.path.exists(path):
+        # Build parent directories when file is not exist.
+        basedir = os.path.dirname(path)
+        if not os.path.exists(basedir):
+            os.makedirs(basedir)
+
+        with open(path, "w") as f: 
             if content:
                 f.write(content)
-        print(f"[dictionary-overlay] auto create user data file {data_file_path}")
+                
+        print(f"[dictionary-overlay] auto create user data file {path}")                
 
 asyncio.run(main())
