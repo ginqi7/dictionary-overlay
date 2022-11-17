@@ -164,7 +164,7 @@ DISPLAY is english with chinese."
          (temp-install-directory
           (make-temp-file "install-google-translate" t))
          (process-cmd
-          (format "git clone https://git.ookami.one/cgit/google-translate/ %s; cd %s; make install" temp-install-directory temp-install-directory)
+          (format "git clone https://git.ookami.one/cgit/google-translate/ %s; cd %s; pip install build; make install" temp-install-directory temp-install-directory)
 
           ))
     (set-process-sentinel
