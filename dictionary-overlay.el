@@ -43,7 +43,7 @@
 ;;  `dictionary-overlay-mark-word-unknown'
 ;;    Mark current word unknown.
 ;;  `dictionary-overlay-mark-buffer'
-;;    Mark all words in buffer as known, except words already in `knownwords' list.
+;;    Mark all words in buffer as known, except words already in `unknownwords' list.
 ;;  `dictionary-overlay-mark-buffer-unknown'
 ;;    Mark all words in buffer as unknown, except words already in `unknownwords' list.
 ;;  `dictionary-overlay-install'
@@ -146,7 +146,7 @@ And with optional WORD"
   (dictionary-overlay-refresh-buffer))
 
 (defun dictionary-overlay-mark-buffer()
-  "Mark all words in buffer as known, except words already in `knownwords' list."
+  "Mark all words in buffer as known, except words already in `unknownwords' list."
   (interactive)
   (websocket-bridge-call-buffer "mark_buffer")
 
