@@ -44,6 +44,7 @@ git clone --depth=1 -b main https://github.com/ginqi7/dictionary-overlay ~/.emac
 | dictionary-overlay-start                    | 启动 dictionary-overlay 应用                        |
 | dictionary-overlay-restart                  | 重启 dictionary-overlay 应用                        |
 | dictionary-overlay-render-buffer            | 使用翻译渲染当前 buffer                              |
+| dictionary-overlay-toggle            | 打开\关闭翻译渲染当前 buffer                         |
 | dictionary-overlay-jump-next-unknown-word   | 跳转到下一个生词                                    |
 | dictionary-overlay-jump-prev-unknown-word   | 跳转到上一个生词                                    |
 | dictionary-overlay-mark-word-known          | 标记当前单词为“已知”                                |
