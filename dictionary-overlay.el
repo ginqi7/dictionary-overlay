@@ -124,9 +124,16 @@ And with optional WORD"
   (dictionary-overlay-render-buffer))
 
 (defun dictionary-overlay-mark-buffer()
-  "Mark all words in buffer kwon, except words in `knownwords' list."
+  "Mark all words in buffer as known, except words already in `knownwords' list."
   (interactive)
   (websocket-bridge-call-buffer "mark_buffer")
+
+  (dictionary-overlay-render-buffer))
+
+(defun dictionary-overlay-mark-buffer-unknown()
+  "Mark all words in buffer as unknown, except words already in `unknownwords' list."
+  (interactive)
+  (websocket-bridge-call-buffer "mark_buffer_unknown")
 
   (dictionary-overlay-render-buffer))
 

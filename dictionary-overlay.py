@@ -103,6 +103,8 @@ async def on_message(message):
         unknown_words.add(word)
     elif cmd == "mark_buffer":
         mark_buffer(sentence)
+    elif cmd == "mark_buffer_unknown":
+        mark_buffer_unknown(sentence)
     else:
         print(f"not fount handler for {cmd}", flush=True)
 
@@ -114,6 +116,15 @@ def mark_buffer(sentence: str):
     ]
     for word in words:
         known_words.add(word)
+
+
+def mark_buffer_unknown(sentence: str):
+    tokens = pre_tokenizer.pre_tokenize_str(sentence)
+    words = [
+        token[0].lower() for token in tokens if token[0].lower() not in known_words
+    ]
+    for word in words:
+        unknown_words.add(word)
 
 
 def get_command_result(command_string, cwd=None):
