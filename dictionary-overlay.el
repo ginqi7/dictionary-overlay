@@ -152,17 +152,16 @@
 (defun dictionary-overlay-mark-buffer()
   "Mark all words in buffer as known, except words already in `unknownwords' list."
   (interactive)
-  (websocket-bridge-call-buffer "mark_buffer")
-
-  (dictionary-overlay-refresh-buffer))
+  (when (y-or-n-p "Mark all as KNOWN, EXCEPT those in unknownwords list?")
+    (websocket-bridge-call-buffer "mark_buffer")
+    (dictionary-overlay-refresh-buffer)))
 
 (defun dictionary-overlay-mark-buffer-unknown()
   "Mark all words in buffer as unknown, except words already in `unknownwords' list."
   (interactive)
-  (websocket-bridge-call-buffer "mark_buffer_unknown")
-
-  (dictionary-overlay-refresh-buffer))
-
+  (when (y-or-n-p "Mark all as UNKNOWN, EXCEPT those in unknownwords list?")
+    (websocket-bridge-call-buffer "mark_buffer_unknown")
+    (dictionary-overlay-refresh-buffer)))
 
 (defun dictionary-add-overlay-from(begin end word display)
   "Add overlay from BEGIN to END.
