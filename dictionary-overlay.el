@@ -50,6 +50,8 @@
 ;;    Install all python dependencies.
 ;;  `dictionary-overlay-install-google-translate'
 ;;    Install all google-translate.
+;;  `dictionary-overlay-modify-translation'
+;;    Modify current word's translation.
 ;;
 ;;; Customizable Options:
 ;;
@@ -91,13 +93,17 @@
   (websocket-bridge-app-open-buffer "dictionary-overlay"))
 
 
-(defun websocket-bridge-call-buffer(func-name &optional word)
-  "Call grammarly function on current buffer by FUNC-NAME.
-And with optional WORD"
+(defun websocket-bridge-call-buffer(func-name)
+  "Call grammarly function on current buffer by FUNC-NAME."
   (websocket-bridge-call "dictionary-overlay" func-name
-                  (buffer-string)
-                         (point)
-                         word))
+                         (buffer-string)
+                         (point)))
+
+(defun websocket-bridge-call-word(func-name)
+  "Call grammarly function on current word by FUNC-NAME."
+  (websocket-bridge-call "dictionary-overlay" func-name
+                         (downcase (thing-at-point 'word))))
+
 
 (defun dictionary-overlay-render-buffer ()
   "Render current buffer."
@@ -134,15 +140,13 @@ And with optional WORD"
 (defun dictionary-overlay-mark-word-known()
   "Mark current word known."
   (interactive)
-  (let ((word (downcase (thing-at-point 'word t))))
-    (websocket-bridge-call-buffer "mark_word_known" word))
+  (websocket-bridge-call-word "mark_word_known")
   (dictionary-overlay-refresh-buffer))
 
 (defun dictionary-overlay-mark-word-unknown()
   "Mark current word unknown."
   (interactive)
-  (let ((word (downcase (thing-at-point 'word t))))
-    (websocket-bridge-call-buffer "mark_word_unknown" word))
+  (websocket-bridge-call-word "mark_word_unknown")
   (dictionary-overlay-refresh-buffer))
 
 (defun dictionary-overlay-mark-buffer()
@@ -171,7 +175,7 @@ DISPLAY is english with chinese."
   "Install all python dependencies."
   (interactive)
   (let ((process-environment
- (cons "NO_COLOR=true" process-environment))
+         (cons "NO_COLOR=true" process-environment))
         (process-buffer-name "*dictionary-overlay-install*"))
     (set-process-sentinel
      (start-process "dictionary-overlay-install" process-buffer-name
@@ -207,6 +211,23 @@ DISPLAY is english with chinese."
     (other-window 1)
     (switch-to-buffer process-buffer-name)))
 
+
+(defun dictionary-overlay-modify-translation ()
+  "Modify current word's translation."
+  (interactive)
+  (let ((word (downcase (thing-at-point 'word t))))
+    (websocket-bridge-call "dictionary-overlay"
+                           "modify_translation"
+                           word)))
+
+(defun dictionary-overlay-choose-translate (word candidates)
+  "Choose WORD's translation CANDIDATES."
+  (let ((translation (completing-read "Choose or input translation: " candidates)))
+    (websocket-bridge-call "dictionary-overlay"
+                           "update_translation"
+                           word
+                           translation))
+  (dictionary-overlay-render-buffer))
 
 (provide 'dictionary-overlay)
 ;;; dictionary-overlay.el ends here
