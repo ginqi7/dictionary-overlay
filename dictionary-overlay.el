@@ -32,6 +32,8 @@
 ;;    Restart dictionary-overlay and show process.
 ;;  `dictionary-overlay-render-buffer'
 ;;    Render current buffer.
+;;  `dictionary-overlay-toggle'
+;;    Toggle current buffer.
 ;;  `dictionary-overlay-jump-next-unknown-word'
 ;;    Jump to next unknown word.
 ;;  `dictionary-overlay-jump-prev-unknown-word'
@@ -41,11 +43,15 @@
 ;;  `dictionary-overlay-mark-word-unknown'
 ;;    Mark current word unknown.
 ;;  `dictionary-overlay-mark-buffer'
-;;    Mark all words in buffer kwon, except words in `knownwords' list.
+;;    Mark all words in buffer as known, except words already in `unknownwords' list.
+;;  `dictionary-overlay-mark-buffer-unknown'
+;;    Mark all words in buffer as unknown, except words already in `unknownwords' list.
 ;;  `dictionary-overlay-install'
 ;;    Install all python dependencies.
 ;;  `dictionary-overlay-install-google-translate'
 ;;    Install all google-translate.
+;;  `dictionary-overlay-modify-translation'
+;;    Modify current word's translation.
 ;;
 ;;; Customizable Options:
 ;;
@@ -66,6 +72,9 @@
        (file-name-directory load-file-name)
        "requirements.txt"))
 
+(defvar-local dictionary-overlay-active-p nil
+  "Check current buffer if active dictionary-overlay.")
+
 (defvar dictionary-overlay-just-unknown-words t)
 
 (defvar dictionary-overlay-user-data-directory "~/.emacs.d/dictionary-overlay-data")
@@ -84,20 +93,38 @@
   (websocket-bridge-app-open-buffer "dictionary-overlay"))
 
 
-(defun websocket-bridge-call-buffer(func-name &optional word)
-  "Call grammarly function on current buffer by FUNC-NAME.
-And with optional WORD"
+(defun websocket-bridge-call-buffer(func-name)
+  "Call grammarly function on current buffer by FUNC-NAME."
   (websocket-bridge-call "dictionary-overlay" func-name
                          (buffer-string)
-                         (point)
-                         word
-                         ))
+                         (point)))
+
+(defun websocket-bridge-call-word(func-name)
+  "Call grammarly function on current word by FUNC-NAME."
+  (websocket-bridge-call "dictionary-overlay" func-name
+                         (downcase (thing-at-point 'word))))
+
 
 (defun dictionary-overlay-render-buffer ()
   "Render current buffer."
   (interactive)
-  (remove-overlays)
-  (websocket-bridge-call-buffer "render"))
+  (setq-local dictionary-overlay-active-p t)
+  (dictionary-overlay-refresh-buffer))
+
+(defun dictionary-overlay-toggle ()
+  "Toggle current buffer."
+  (interactive)
+  (if dictionary-overlay-active-p
+      (progn
+        (remove-overlays)
+        (setq-local dictionary-overlay-active-p nil))
+    (dictionary-overlay-render-buffer)))
+
+(defun dictionary-overlay-refresh-buffer ()
+  "Refresh current buffer."
+  (when dictionary-overlay-active-p
+    (remove-overlays)
+    (websocket-bridge-call-buffer "render")))
 
 
 (defun dictionary-overlay-jump-next-unknown-word ()
@@ -113,23 +140,28 @@ And with optional WORD"
 (defun dictionary-overlay-mark-word-known()
   "Mark current word known."
   (interactive)
-  (let ((word (downcase (thing-at-point 'word t))))
-    (websocket-bridge-call-buffer "mark_word_known" word))
-  (dictionary-overlay-render-buffer))
+  (websocket-bridge-call-word "mark_word_known")
+  (dictionary-overlay-refresh-buffer))
 
 (defun dictionary-overlay-mark-word-unknown()
   "Mark current word unknown."
   (interactive)
-  (let ((word (downcase (thing-at-point 'word t))))
-    (websocket-bridge-call-buffer "mark_word_unknown" word))
-  (dictionary-overlay-render-buffer))
+  (websocket-bridge-call-word "mark_word_unknown")
+  (dictionary-overlay-refresh-buffer))
 
 (defun dictionary-overlay-mark-buffer()
-  "Mark all words in buffer kwon, except words in `knownwords' list."
+  "Mark all words in buffer as known, except words already in `unknownwords' list."
   (interactive)
   (websocket-bridge-call-buffer "mark_buffer")
 
-  (dictionary-overlay-render-buffer))
+  (dictionary-overlay-refresh-buffer))
+
+(defun dictionary-overlay-mark-buffer-unknown()
+  "Mark all words in buffer as unknown, except words already in `unknownwords' list."
+  (interactive)
+  (websocket-bridge-call-buffer "mark_buffer_unknown")
+
+  (dictionary-overlay-refresh-buffer))
 
 
 (defun dictionary-add-overlay-from(begin end word display)
@@ -180,21 +212,21 @@ DISPLAY is english with chinese."
     (switch-to-buffer process-buffer-name)))
 
 
-(defun dictionary-overlay-modify-translate ()
+(defun dictionary-overlay-modify-translation ()
+  "Modify current word's translation."
   (interactive)
   (let ((word (downcase (thing-at-point 'word t))))
     (websocket-bridge-call "dictionary-overlay"
-                           "modify_translate"
+                           "modify_translation"
                            word)))
 
-(defun dictionary-overlay-choose-translate (word candiates)
-  (interactive)
-  (let ((cadidate (completing-read "Choose translate" candiates)))
+(defun dictionary-overlay-choose-translate (word candidates)
+  "Choose WORD's translation CANDIDATES."
+  (let ((translation (completing-read "Choose or input translation: " candidates)))
     (websocket-bridge-call "dictionary-overlay"
-                           "update_translate"
+                           "update_translation"
                            word
-                           cadidate)
-    )
+                           translation))
   (dictionary-overlay-render-buffer))
 
 (provide 'dictionary-overlay)

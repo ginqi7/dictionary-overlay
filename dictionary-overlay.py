@@ -24,8 +24,9 @@ candidates = []
 for word in sdcv_dictionary.keys():
     first_line_translation = sdcv_dictionary.dict[word].split()[0]
     candidate_word = word.lower().replace('"', " ")
-    candidate_translation = first_line_translation.split(".")[-1].split(";")
-    sdcv_words[candidate_word] = candidate_translation
+    # candidate_translations is an array contains all translations
+    candidate_translations = first_line_translation.split(".")[-1].split(";")
+    sdcv_words[candidate_word] = candidate_translations
 
 
 tokenizer = Tokenizer(BPE())
@@ -96,37 +97,46 @@ async def on_message(message):
         point = info[1][2]
         await jump_prev_unknown_word(sentence, point)
     elif cmd == "mark_word_known":
-        word = info[1][3]
+        word = info[1][1]
         if word in unknown_words:
             unknown_words.remove(word)
         known_words.add(word)
     elif cmd == "mark_word_unknown":
-        word = info[1][3]
+        word = info[1][1]
         if word in known_words:
             known_words.remove(word)
         unknown_words.add(word)
     elif cmd == "mark_buffer":
+        sentence = info[1][1]
         mark_buffer(sentence)
-    elif cmd == "modify_translate":
+    elif cmd == "mark_buffer_unknown":
+        sentence = info[1][1]
+        mark_buffer_unknown(sentence)
+    elif cmd == "modify_translation":
+        # give user a selection to modify word translation.
+        # combine with update_translation
         word = info[1][1]
         print(word)
-        await modify_translate(word)
-    elif cmd == "update_translate":
+        await modify_translation(word)
+    elif cmd == "update_translation":
+        # update translate in memory
         word = info[1][1]
-        mean = info[1][2]
-        dictionary[word]=mean
+        translation = info[1][2]
+        dictionary[word]=translation
+    
     else:
         print(f"not fount handler for {cmd}", flush=True)
 
-async def modify_translate(word: str):
-    all_means = []
+async def modify_translation(word: str):
+    all_translations = []
+    # add all translations to make user select.
+    # 添加所有的翻译供用户选择
     if word in sdcv_words:
-        for mean in sdcv_words[word]:
-            all_means.append(mean)
-    #import google_translate     # type: ignore
-    #result = google_translate.translate(word, dst_lang='zh')
-    #all_means.append(result["trans"])
-    sexp = dumps(all_means)
+        for translation in sdcv_words[word]:
+            all_translations.append(translation)
+    result = web_translate(word)
+    all_translations.append(result)
+    sexp = dumps(all_translations)
     cmd = f'(dictionary-overlay-choose-translate "{word}" \'{sexp})'
     await run_and_log(cmd)
 
@@ -137,6 +147,15 @@ def mark_buffer(sentence: str):
     ]
     for word in words:
         known_words.add(word)
+
+
+def mark_buffer_unknown(sentence: str):
+    tokens = pre_tokenizer.pre_tokenize_str(sentence)
+    words = [
+        token[0].lower() for token in tokens if token[0].lower() not in known_words
+    ]
+    for word in words:
+        unknown_words.add(word)
 
 
 def get_command_result(command_string, cwd=None):
@@ -190,6 +209,7 @@ def web_translate(word: str) -> str:
 
 def translate(word: str):
     if word in sdcv_words:
+        # default show the first translation in sdcv dictionary
         return sdcv_words[word][0]
     else:
         return web_translate(word)
