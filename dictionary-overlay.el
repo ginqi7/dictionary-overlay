@@ -111,6 +111,8 @@
 (defun dictionary-overlay-render-buffer ()
   "Render current buffer."
   (interactive)
+  (when (not (member "dictionary-overlay" websocket-bridge-app-list))
+    (dictionary-overlay-start))
   (setq-local dictionary-overlay-active-p t)
   (dictionary-overlay-refresh-buffer))
 

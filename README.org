@@ -76,4 +76,4 @@ git clone --depth=1 -b main https://github.com/ginqi7/dictionary-overlay ~/.emac
 
 * TODO
 - [ ] 尝试使用 nltk 进行词形还原
-- [ ] 增加翻译修改功能，允许用户选择合适的词意
+- [ X ] 增加翻译修改功能，允许用户选择合适的词意
