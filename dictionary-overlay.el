@@ -77,7 +77,10 @@
 
 (defvar dictionary-overlay-just-unknown-words t)
 
-(defvar dictionary-overlay-user-data-directory "~/.emacs.d/dictionary-overlay-data")
+(defcustom dictionary-overlay-user-data-directory
+  (concat (file-name-parent-directory user-init-file)
+          "dictionary-overlay-data/")
+  "Place user data in Emacs directory.")
 
 (defun dictionary-overlay-start ()
   "Start dictionary-overlay."
