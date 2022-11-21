@@ -43,9 +43,9 @@
 ;;  `dictionary-overlay-mark-word-unknown'
 ;;    Mark current word unknown.
 ;;  `dictionary-overlay-mark-buffer'
-;;    Mark all words in buffer as known, except words already in `unknownwords' list.
+;;    Mark all words as known, except those in `unknownwords' list.
 ;;  `dictionary-overlay-mark-buffer-unknown'
-;;    Mark all words in buffer as unknown, except words already in `unknownwords' list.
+;;    Mark all words as unknown, except those in `unknownwords' list.
 ;;  `dictionary-overlay-install'
 ;;    Install all python dependencies.
 ;;  `dictionary-overlay-install-google-translate'
@@ -92,7 +92,10 @@ If nil, show overlay for words not in knownwords list."
 (defun dictionary-overlay-start ()
   "Start dictionary-overlay."
   (interactive)
-  (websocket-bridge-app-start "dictionary-overlay" "python3" dictionary-overlay-py-path))
+  (websocket-bridge-app-start
+   "dictionary-overlay"
+   "python3"
+   dictionary-overlay-py-path))
 
 (defun dictionary-overlay-restart ()
   "Restart dictionary-overlay and show process."
@@ -138,7 +141,6 @@ If nil, show overlay for words not in knownwords list."
     (remove-overlays)
     (websocket-bridge-call-buffer "render")))
 
-
 (defun dictionary-overlay-jump-next-unknown-word ()
   "Jump to next unknown word."
   (interactive)
@@ -155,27 +157,29 @@ If nil, show overlay for words not in knownwords list."
   (websocket-bridge-call-word "mark_word_known")
   (dictionary-overlay-refresh-buffer))
 
-(defun dictionary-overlay-mark-word-unknown()
+(defun dictionary-overlay-mark-word-unknown ()
   "Mark current word unknown."
   (interactive)
   (websocket-bridge-call-word "mark_word_unknown")
   (dictionary-overlay-refresh-buffer))
 
-(defun dictionary-overlay-mark-buffer()
-  "Mark all words in buffer as known, except words already in `unknownwords' list."
+(defun dictionary-overlay-mark-buffer ()
+  "Mark all words as known, except those in `unknownwords' list."
   (interactive)
-  (when (y-or-n-p "Mark all as KNOWN, EXCEPT those in unknownwords list?")
+  (when (y-or-n-p
+         "Mark all as KNOWN, EXCEPT those in unknownwords list?")
     (websocket-bridge-call-buffer "mark_buffer")
     (dictionary-overlay-refresh-buffer)))
 
-(defun dictionary-overlay-mark-buffer-unknown()
-  "Mark all words in buffer as unknown, except words already in `unknownwords' list."
+(defun dictionary-overlay-mark-buffer-unknown ()
+  "Mark all words as unknown, except those in `unknownwords' list."
   (interactive)
-  (when (y-or-n-p "Mark all as UNKNOWN, EXCEPT those in unknownwords list?")
+  (when (y-or-n-p
+         "Mark all as UNKNOWN, EXCEPT those in unknownwords list?")
     (websocket-bridge-call-buffer "mark_buffer_unknown")
     (dictionary-overlay-refresh-buffer)))
 
-(defun dictionary-add-overlay-from(begin end word display)
+(defun dictionary-add-overlay-from (begin end _word display)
   "Add overlay from BEGIN to END.
 WORD is original word.
 DISPLAY is english with chinese."
@@ -189,8 +193,10 @@ DISPLAY is english with chinese."
          (cons "NO_COLOR=true" process-environment))
         (process-buffer-name "*dictionary-overlay-install*"))
     (set-process-sentinel
-     (start-process "dictionary-overlay-install" process-buffer-name
-                    "pip" "install" "-r" dictionary-overlay-py-requirements-path)
+     (start-process "dictionary-overlay-install"
+                    process-buffer-name
+                    "pip" "install" "-r"
+                    dictionary-overlay-py-requirements-path)
      (lambda (p _m)
        (when (eq 0 (process-exit-status p))
          (with-current-buffer (process-buffer p)
@@ -200,7 +206,7 @@ DISPLAY is english with chinese."
     (switch-to-buffer process-buffer-name)))
 
 (defun dictionary-overlay-install-google-translate ()
-  "Install all google-translate."
+  "Install all google-translate dependencies."
   (interactive)
   (let* ((process-environment
           (cons "NO_COLOR=true" process-environment))
@@ -208,12 +214,17 @@ DISPLAY is english with chinese."
          (temp-install-directory
           (make-temp-file "install-google-translate" t))
          (process-cmd
-          (format "git clone https://git.ookami.one/cgit/google-translate/ %s; cd %s; pip install build; make install" temp-install-directory temp-install-directory)
-
-          ))
+          (format
+           (concat "git clone https://git.ookami.one/cgit/google-translate/ %s; "
+                   "cd %s; "
+                   "pip install build; "
+                   "make install")
+           temp-install-directory temp-install-directory)))
     (set-process-sentinel
-     (start-process-shell-command "dictionary-overlay-install-google-translate" process-buffer-name
-                                  process-cmd)
+     (start-process-shell-command
+      "dictionary-overlay-install-google-translate"
+      process-buffer-name
+      process-cmd)
      (lambda (p _m)
        (when (eq 0 (process-exit-status p))
          (with-current-buffer (process-buffer p)
@@ -221,7 +232,6 @@ DISPLAY is english with chinese."
     (split-window-below)
     (other-window 1)
     (switch-to-buffer process-buffer-name)))
-
 
 (defun dictionary-overlay-modify-translation ()
   "Modify current word's translation."
@@ -233,7 +243,8 @@ DISPLAY is english with chinese."
 
 (defun dictionary-overlay-choose-translate (word candidates)
   "Choose WORD's translation CANDIDATES."
-  (let ((translation (completing-read "Choose or input translation: " candidates)))
+  (let ((translation (completing-read
+                      "Choose or input translation: " candidates)))
     (websocket-bridge-call "dictionary-overlay"
                            "update_translation"
                            word
