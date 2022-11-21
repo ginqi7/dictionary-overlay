@@ -1,5 +1,6 @@
 sexpdata==0.0.3
 six==1.16.0
+snowballstemmer==2.2.0
 tokenizers==0.13.2
 websocket-bridge-python==0.0.2
 websockets==10.4

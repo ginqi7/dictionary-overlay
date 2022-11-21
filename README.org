@@ -17,6 +17,7 @@
 - [[https://github.com/huggingface/tokenizers][tokenizers]] python 分词工具
 - six pystardict.py 的依赖
 - [[https://github.com/jd-boyd/sexpdata][sexpdata]] 用于把 python 对象转换为 sexp
+- [[https://pypi.org/project/snowballstemmer/][snowballstemmer]] 用于“词干提取”的算法包
 - [[https://git.ookami.one/cgit/google-translate/][google-translate]] 用于网络翻译，非必选，可以用 crow-translate 替换
 
 你可以使用 ~dictionary-overlay-install~ 来安装相关的 python 包（不包括 google-translate）。
@@ -74,6 +75,6 @@ git clone --depth=1 -b main https://github.com/ginqi7/dictionary-overlay ~/.emac
 
 当你阅读了足够多的文章，你应该积累了一定量的 know-words ，此时，或许你可以尝试使用"透析阅读法"（ ~(setq dictionary-overlay-just-unknown-words nil)~ ）将自动展示，“或许”你不认识的单词。
 
-* TODO
-- [ ] 尝试使用 nltk 进行词形还原
-- [ X ] 增加翻译修改功能，允许用户选择合适的词意
+* 功能特性
+- 使用 snowballstemmer进行词干提取，能够用于标记词干相同，形态不一的单词
+- 增加翻译修改功能，允许用户选择合适的词意
