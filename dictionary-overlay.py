@@ -10,10 +10,10 @@ import json
 import os
 import re
 import shutil
+import snowballstemmer
 import websocket_bridge_python
 
- 
-
+snowball_stemmer =  snowballstemmer.stemmer('english');
 sdcv_dictionary_path = os.path.join(
     os.path.dirname(__file__), "resources", "kdic-ec-11w"
 )
@@ -33,6 +33,9 @@ tokenizer = Tokenizer(BPE())
 pre_tokenizer = Whitespace()
 dictionary = {}
 
+def in_or_stem_in(word:str, words) -> bool:
+    return word in words or snowball_stemmer.stemWord(word) in words
+
 
 async def parse(sentence: str):
     only_unknown_words = await bridge.get_emacs_var(
@@ -40,7 +43,7 @@ async def parse(sentence: str):
     )
     tokens = pre_tokenizer.pre_tokenize_str(sentence)
     if only_unknown_words == "true":
-        tokens = [token for token in tokens if token[0].lower() in unknown_words]
+        tokens = [token for token in tokens if in_or_stem_in(token[0].lower(), unknown_words)]
     else:
         tokens = [token for token in tokens if new_word_p(token[0].lower())]
     return tokens
@@ -51,7 +54,7 @@ def new_word_p(word: str) -> bool:
         return False
     if re.match(r"[\W\d]", word, re.M | re.I):
         return False
-    return word not in known_words
+    return not in_or_stem_in(word, known_words)
 
 
 def dump_knownwords_to_file():
@@ -98,14 +101,22 @@ async def on_message(message):
         await jump_prev_unknown_word(sentence, point)
     elif cmd == "mark_word_known":
         word = info[1][1]
+        stem_word = snowball_stemmer.stemWord(word)
         if word in unknown_words:
             unknown_words.remove(word)
+        if stem_word in unknown_words:
+            unknown_words.remove(stem_word)
         known_words.add(word)
+        known_words.add(stem_word)
     elif cmd == "mark_word_unknown":
         word = info[1][1]
+        stem_word = snowball_stemmer.stemWord(word)
         if word in known_words:
             known_words.remove(word)
+        if stem_word in known_words:
+            known_words.remove(stem_word)
         unknown_words.add(word)
+        unknown_words.add(stem_word)
     elif cmd == "mark_buffer":
         sentence = info[1][1]
         mark_buffer(sentence)
@@ -116,7 +127,6 @@ async def on_message(message):
         # give user a selection to modify word translation.
         # combine with update_translation
         word = info[1][1]
-        print(word)
         await modify_translation(word)
     elif cmd == "update_translation":
         # update translate in memory
@@ -130,12 +140,15 @@ async def on_message(message):
 async def modify_translation(word: str):
     all_translations = []
     # add all translations to make user select.
-    # 添加所有的翻译供用户选择
     if word in sdcv_words:
         for translation in sdcv_words[word]:
             all_translations.append(translation)
+    if snowball_stemmer.stemWord(word) in sdcv_words:
+        for translation in sdcv_words[snowball_stemmer.stemWord(word)]:
+            all_translations.append(translation)
     result = web_translate(word)
     all_translations.append(result)
+    all_translations = list(set(all_translations))
     sexp = dumps(all_translations)
     cmd = f'(dictionary-overlay-choose-translate "{word}" \'{sexp})'
     await run_and_log(cmd)
@@ -143,19 +156,23 @@ async def modify_translation(word: str):
 def mark_buffer(sentence: str):
     tokens = pre_tokenizer.pre_tokenize_str(sentence)
     words = [
-        token[0].lower() for token in tokens if token[0].lower() not in unknown_words
+        token[0].lower() for token in tokens if not in_or_stem_in(token[0].lower(), unknown_words)
     ]
+    
     for word in words:
         known_words.add(word)
+        known_words.add(snowball_stemmer.stemWord(word))
 
 
 def mark_buffer_unknown(sentence: str):
     tokens = pre_tokenizer.pre_tokenize_str(sentence)
     words = [
-        token[0].lower() for token in tokens if token[0].lower() not in known_words
+        token[0].lower() for token in tokens if not in_or_stem_in(token[0].lower(), known_words)
+        
     ]
     for word in words:
         unknown_words.add(word)
+        unknown_words.add(snowball_stemmer.stemWord(word))
 
 
 def get_command_result(command_string, cwd=None):
