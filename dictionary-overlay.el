@@ -62,25 +62,32 @@
 
 (require 'websocket-bridge)
 
-(setq dictionary-overlay-py-path
-      (concat
-       (file-name-directory load-file-name)
-       "dictionary-overlay.py"))
+(defgroup dictionary-overlay ()
+  "Dictionary overlay for words in buffers."
+  :group 'applications)
 
-(setq dictionary-overlay-py-requirements-path
-      (concat
-       (file-name-directory load-file-name)
-       "requirements.txt"))
+(defvar dictionary-overlay-py-path
+  (concat (file-name-directory load-file-name)
+          "dictionary-overlay.py"))
+
+(defvar dictionary-overlay-py-requirements-path
+  (concat (file-name-directory load-file-name)
+          "requirements.txt"))
 
 (defvar-local dictionary-overlay-active-p nil
   "Check current buffer if active dictionary-overlay.")
 
-(defvar dictionary-overlay-just-unknown-words t)
+(defcustom dictionary-overlay-just-unknown-words t
+  "If t, show overlay for words in unknownwords list.
+If nil, show overlay for words not in knownwords list."
+  :group 'dictionary-overlay
+  :type 'boolean)
 
 (defcustom dictionary-overlay-user-data-directory
-  (concat (file-name-parent-directory user-init-file)
-          "dictionary-overlay-data/")
-  "Place user data in Emacs directory.")
+  (locate-user-emacs-file "dictionary-overlay-data/")
+  "Place user data in Emacs directory."
+  :group 'dictionary-overlay
+  :type 'directory)
 
 (defun dictionary-overlay-start ()
   "Start dictionary-overlay."
