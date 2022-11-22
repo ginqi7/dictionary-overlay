@@ -62,9 +62,16 @@
 
 (require 'websocket-bridge)
 
+
 (defgroup dictionary-overlay ()
   "Dictionary overlay for words in buffers."
   :group 'applications)
+
+(defface dictionary-overlay-unknownwords-face
+  nil
+  "Face for dictionary-overlay unknown words."
+  :group 'dictionary-overlay
+  )
 
 (defvar dictionary-overlay-py-path
   (concat (file-name-directory load-file-name)
@@ -184,7 +191,9 @@ If nil, show overlay for words not in knownwords list."
 WORD is original word.
 DISPLAY is english with chinese."
   (let ((ov (make-overlay begin end)))
-    (overlay-put ov 'display display)))
+    (overlay-put ov 'display display)
+    (overlay-put ov 'face 'dictionary-overlay-unknownwords-face)
+    ))
 
 (defun dictionary-overlay-install ()
   "Install all python dependencies."

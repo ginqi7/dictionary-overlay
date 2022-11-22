@@ -60,8 +60,24 @@ git clone --depth=1 -b main https://github.com/ginqi7/dictionary-overlay ~/.emac
 * 选项
 
 | 选项                                   | 说明                                                               |
-| dictionary-overlay-just-unknown-words  | t 时使用“生词本”模式，nil 为“透析阅读”模式，默认为 t                |
+| dictionary-overlay-just-unknown-words  | t 时使用“生词本”模式，nil 为“透析阅读”模式，默认为 t               |
 | dictionary-overlay-user-data-directory | 用户数据存放的目录，默认值为：“~/.emacs.d/dictionary-overlay-data” |
+| dictionary-overlay-unknownwords-face                                         | 生词的展示形态face 默认为nil, 用户可自行修改                                          |
+
+** dictionary-overlay-unknownwords-face
+用于控制生词的展示, 为了不影响阅读默认为空，不对原始face 做任何修改。如果希望能通过face 对生词进行显示增加可以参考
+
+#+begin_src emacs-lisp
+(defface dictionary-overlay-unknownwords-face
+  '((((class color) (min-colors 88) (background light))
+     :underline "#fb8c96" :background "#fbd8db")
+    (((class color) (min-colors 88) (background dark))
+     :underline "#C77577" :background "#7A696B")
+    (t
+     :inherit highlight))
+  "Face for dictionary-overlay unknown words.")
+#+end_src
+
 
 * 使用方法探讨
 
