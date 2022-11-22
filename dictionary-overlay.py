@@ -146,7 +146,7 @@ async def modify_translation(word: str):
     if snowball_stemmer.stemWord(word) in sdcv_words:
         for translation in sdcv_words[snowball_stemmer.stemWord(word)]:
             all_translations.append(translation)
-    result = web_translate(word)
+    result = await web_translate(word)
     all_translations.append(result)
     all_translations = list(set(all_translations))
     sexp = dumps(all_translations)
@@ -212,24 +212,32 @@ async def jump_prev_unknown_word(sentence: str, point: int):
             await run_and_log(cmd)
             break
         
-def web_translate(word: str) -> str:
-    if shutil.which("crow"):
-        result = get_command_result(f'crow -t zh-CN --json -e google "{word}"')
-        return json.loads(result)["translation"]
-    else:
-        try:
+async def web_translate(word: str) -> str:
+    try:
+        if shutil.which("crow"):
+            result = get_command_result(f'crow -t zh-CN --json -e google "{word}"')
+            return json.loads(result)["translation"]
+        else:
             import google_translate     # type: ignore
             result = google_translate.translate(word, dst_lang='zh')
             return result["trans"][0]
-        except:
-            raise Exception(f"you do not have a network dictionary installed and the queried word [{word}] is not in the local dictionary, please install crow-translate or google-translate")
+    except ImportError:
+        msg= f"[Dictionary-overlay]you do not have a network dictionary installed and the queried word [\"{word}\"] is not in the local dictionary, please install crow-translate or google-translate"
+        print(msg)
+        await bridge.message_to_emacs(msg)
+        return ""
+    except Exception as e:
+        print (e)
+        msg = "[Dictionary-overlay]web-translate error, check your network. or run (websocket-bridge-app-open-buffer 'dictionary-overlay) see the error details."
+        await bridge.message_to_emacs(msg)
+        return ""
 
-def translate(word: str):
+async def translate(word: str):
     if word in sdcv_words:
         # default show the first translation in sdcv dictionary
         return sdcv_words[word][0]
     else:
-        return web_translate(word)
+        return await web_translate(word)
 
 async def render(message):
     try:
@@ -237,16 +245,20 @@ async def render(message):
         for token in tokens:
             word = token[0].lower()
             chinese = ""
-
             if word in dictionary:
+                # first try find translation in local sdvc
                 chinese = dictionary[word]
-
             if chinese == "%s" or chinese == "":
-                chinese = translate(word)
+                # if first step find nothing, then try find translation web stranslate.
+                chinese = await translate(word)
                 dictionary[word] = chinese
-
+            if chinese == "%s" or chinese == "":
+                # if find nothing, don't run render function in emacs.
+                return
             await render_word(token, chinese)
     except Exception as e:
+        msg = "[Dictionary-overlay]Render buffer error. Run (websocket-bridge-app-open-buffer 'dictionary-overlay) see the error details"
+        await bridge.message_to_emacs(msg)
         print(e)
 
 
