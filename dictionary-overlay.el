@@ -49,7 +49,7 @@
 ;;  `dictionary-overlay-install'
 ;;    Install all python dependencies.
 ;;  `dictionary-overlay-install-google-translate'
-;;    Install all google-translate.
+;;    Install all google-translate dependencies.
 ;;  `dictionary-overlay-modify-translation'
 ;;    Modify current word's translation.
 ;;
@@ -57,6 +57,15 @@
 ;;
 ;; Below are customizable option list:
 ;;
+;;  `dictionary-overlay-just-unknown-words'
+;;    If t, show overlay for words in unknownwords list.
+;;    default = t
+;;  `dictionary-overlay-user-data-directory'
+;;    Place user data in Emacs directory.
+;;    default = (locate-user-emacs-file "dictionary-overlay-data/")
+;;  `dictionary-overlay-translation-format'
+;;    Translation format
+;;    default = "(%s)"
 
 ;;; Code:
 
@@ -67,11 +76,18 @@
   "Dictionary overlay for words in buffers."
   :group 'applications)
 
-(defface dictionary-overlay-unknownwords-face
+(defface dictionary-overlay-unknownword
   nil
   "Face for dictionary-overlay unknown words."
   :group 'dictionary-overlay
   )
+
+(defface dictionary-overlay-translation
+  nil
+  "Face for dictionary-overlay translations."
+  :group 'dictionary-overlay
+  )
+
 
 (defvar dictionary-overlay-py-path
   (concat (file-name-directory load-file-name)
@@ -95,6 +111,11 @@ If nil, show overlay for words not in knownwords list."
   "Place user data in Emacs directory."
   :group 'dictionary-overlay
   :type 'directory)
+
+(defcustom dictionary-overlay-translation-format "(%s)"
+  "Translation format"
+  :group 'dictionary-overlay
+  :type 'boolean)
 
 (defun dictionary-overlay-start ()
   "Start dictionary-overlay."
@@ -186,14 +207,16 @@ If nil, show overlay for words not in knownwords list."
     (websocket-bridge-call-buffer "mark_buffer_unknown")
     (dictionary-overlay-refresh-buffer)))
 
-(defun dictionary-add-overlay-from (begin end _word display)
-  "Add overlay from BEGIN to END.
-WORD is original word.
-DISPLAY is english with chinese."
-  (let ((ov (make-overlay begin end)))
-    (overlay-put ov 'display display)
-    (overlay-put ov 'face 'dictionary-overlay-unknownwords-face)
-    ))
+(defun dictionary-add-overlay-from (begin end source target)
+  "Add a overlay with range BEGIN to END for the translation SOURCE to TARGET."
+  (when (not (face-equal 'dictionary-overlay-unknownword (make-face 'dictionary-overlay-default)))
+    ;; when not add user face for the word, don't need a overlay in the origin word.
+    (let ((ov (make-overlay begin end)))
+      (overlay-put ov 'display source)
+      (overlay-put ov 'face 'dictionary-overlay-unknownword)))
+  (let ((ov (make-overlay end (+ end 1))))
+    (overlay-put ov 'display (concat (format dictionary-overlay-translation-format target) (string (char-after end))))
+    (overlay-put ov 'face 'dictionary-overlay-translation)))
 
 (defun dictionary-overlay-install ()
   "Install all python dependencies."
