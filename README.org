@@ -59,16 +59,17 @@ git clone --depth=1 -b main https://github.com/ginqi7/dictionary-overlay ~/.emac
 
 * 选项
 
-| 选项                                   | 说明                                                               |
-| dictionary-overlay-just-unknown-words  | t 时使用“生词本”模式，nil 为“透析阅读”模式，默认为 t               |
-| dictionary-overlay-user-data-directory | 用户数据存放的目录，默认值为：“~/.emacs.d/dictionary-overlay-data” |
-| dictionary-overlay-translation-format  | 翻译展示的形式，默认是："(%s)"                                     |
-| dictionary-overlay-unknownword         | 生词的展示形态face 默认为nil, 用户可自行修改                       |
-| dictionary-overlay-translation         | 生词的翻译的展示形态 face 默认为nil, 用户可自行修改                |
+| 选项                                               | 说明                                                          |
+| dictionary-overlay-just-unknown-words             | t 时使用“生词本”模式，nil 为“透析阅读”模式，默认为 t                 |
+| dictionary-overlay-refresh-buffer-after-mark-word | t 时每次标记“单个词”都会重新渲染整个buffer, 默认为 t                 |
+| dictionary-overlay-user-data-directory            | 用户数据存放 目录，默认值为：“~/.emacs.d/dictionary-overlay-data” |
+| dictionary-overlay-translation-format             | 翻译展示的形式，默认是："(%s)"                                    |
+| dictionary-overlay-unknownword                    | 生词的展示形态 face 默认为 nil, 用户可自行修改                      |
+| dictionary-overlay-translation                    | 生词的翻译的展示形态 face 默认为 nil, 用户可自行修改                 |
 
 ** face
 
-用于控制生词的展示, 为了不影响阅读默认为空，不对原始face 做任何修改。如果希望能通过face 对生词进行显示增加可以参考
+用于控制生词的展示, 为了不影响阅读默认为空，不对原始 face 做任何修改。如果希望能通过 face 对生词进行显示增加可以参考
 
 #+begin_src emacs-lisp
 (defface dictionary-overlay-translation
@@ -81,7 +82,7 @@ git clone --depth=1 -b main https://github.com/ginqi7/dictionary-overlay ~/.emac
   "Face for dictionary-overlay unknown words.")
 #+end_src
 
-face `dictionary-overlay-unknownword` 如果用户不自行定义，那么不会给单词加上overlay, 只会新增翻译的 overlay. 这样的好处是，当你在单词上移动时，仍旧按照字母移动，而不是按照overlay 移动。
+face `dictionary-overlay-unknownword` 如果用户不自行定义，那么不会给单词加上 overlay, 只会新增翻译的 overlay. 这样的好处是，当你在单词上移动时，仍旧按照字母移动，而不是按照 overlay 移动。
 
 推荐使用的 face ：
 #+begin_src emacs-lisp
@@ -104,6 +105,8 @@ face `dictionary-overlay-unknownword` 如果用户不自行定义，那么不会
 
 当你阅读了足够多的文章，你应该积累了一定量的 know-words ，此时，或许你可以尝试使用"透析阅读法"（ ~(setq dictionary-overlay-just-unknown-words nil)~ ）将自动展示，“或许”你不认识的单词。
 
+当前 buffer 有大量生词时，重新渲染整个界面会产生可感知的渲染延迟，此时可将 dictionary-overlay-refresh-buffer-after-mark-word 的值设为 nil, 界面不再刷新，但词汇依然会进入生词本和熟词本，如果标记几个词后想刷新界面，可使用命令 dictionary-overlay-render-buffer。
+
 * 功能特性
-- 使用 snowballstemmer进行词干提取，能够用于标记词干相同，形态不一的单词
+- 使用 snowballstemmer 进行词干提取，能够用于标记词干相同，形态不一的单词
 - 增加翻译修改功能，允许用户选择合适的词意
