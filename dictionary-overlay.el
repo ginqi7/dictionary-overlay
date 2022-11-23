@@ -67,11 +67,9 @@
   "Dictionary overlay for words in buffers."
   :group 'applications)
 
-(defface dictionary-overlay-unknownwords-face
-  nil
+(defface dictionary-overlay-unknownwords '((t (:height 0.6 :inherit shadow)))
   "Face for dictionary-overlay unknown words."
-  :group 'dictionary-overlay
-  )
+  :group 'dictionary-overlay)
 
 (defvar dictionary-overlay-py-path
   (concat (file-name-directory load-file-name)
@@ -186,14 +184,22 @@ If nil, show overlay for words not in knownwords list."
     (websocket-bridge-call-buffer "mark_buffer_unknown")
     (dictionary-overlay-refresh-buffer)))
 
-(defun dictionary-add-overlay-from (begin end _word display)
-  "Add overlay from BEGIN to END.
-WORD is original word.
-DISPLAY is english with chinese."
+(defun dictionary-overlay-add-simple (begin end text translation)
+  "Add simple overlay with range BEGIN to END for TEXT TRANSLATION."
+  (let ((ov (make-overlay end (+ end 1))))
+    (overlay-put ov 'display (format " %s " translation))
+    (overlay-put ov 'face 'dictionary-overlay-unknownwords)))
+
+(defun dictionary-overlay-add-emphasis (begin end text translation)
+  "Add emphasis overlays with range BEGIN to END for TEXT TRANSLATION."
   (let ((ov (make-overlay begin end)))
-    (overlay-put ov 'display display)
-    (overlay-put ov 'face 'dictionary-overlay-unknownwords-face)
-    ))
+    (overlay-put ov 'display text)
+    (overlay-put ov 'face 'font-lock-keyword-face))
+  (let ((ov (make-overlay end (+ end 1))))
+    (overlay-put ov 'display (format "(%s)" translation))
+    (overlay-put ov 'face 'font-lock-comment-face)))
+
+(defvar dictionary-overlay-add-function #'dictionary-overlay-add-simple "Add overlay function.")
 
 (defun dictionary-overlay-install ()
   "Install all python dependencies."

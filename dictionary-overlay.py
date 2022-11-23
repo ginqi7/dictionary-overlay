@@ -264,11 +264,10 @@ async def render(message):
 
 async def render_word(token, chinese):
     word = token[0]
-    display = "{en}({zh})".format(en=word, zh=chinese)
     begin = token[1][0] + 1
     end = token[1][1] + 1
-    cmd = '(dictionary-add-overlay-from {begin} {end} "{word}" "{display}")'.format(
-        begin=begin, end=end, word=word, display=display
+    cmd = '(funcall dictionary-overlay-add-function {begin} {end} "{text}" "{translation}")'.format(
+        begin=begin, end=end, text=word, translation=chinese
     )
     await run_and_log(cmd)
 
