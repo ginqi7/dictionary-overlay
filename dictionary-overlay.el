@@ -191,6 +191,22 @@ If nil, show overlay for words not in knownwords list."
   (websocket-bridge-call-word "mark_word_unknown")
   (dictionary-overlay-refresh-buffer))
 
+(defun dictionary-overlay-mark-word-smart ()
+  "Smartly mark current word known or unknown.
+Based on value of `dictionary-overlay-just-unknown-words'"
+  (interactive)
+  (if dictionary-overlay-just-unknown-words
+      (dictionary-overlay-mark-word-known)
+    (dictionary-overlay-mark-word-unknown)))
+
+(defun dictionary-overlay-mark-word-smart-reversely ()
+  "Smartly mark current word known or unknown smartly, but reversely.
+Based on value of `dictionary-overlay-just-unknown-words'"
+  (interactive)
+  (if dictionary-overlay-just-unknown-words
+      (dictionary-overlay-mark-word-unknown)
+    (dictionary-overlay-mark-word-known)))
+
 (defun dictionary-overlay-mark-buffer ()
   "Mark all words as known, except those in `unknownwords' list."
   (interactive)
