@@ -28,6 +28,8 @@
 ;;
 ;;  `dictionary-overlay-start'
 ;;    Start dictionary-overlay.
+;;  `dictionary-overlay-stop'
+;;    Stop dictionary-overlay.
 ;;  `dictionary-overlay-restart'
 ;;    Restart dictionary-overlay and show process.
 ;;  `dictionary-overlay-render-buffer'
@@ -137,6 +139,11 @@ with `dictionary-overlay-render-buffer'."
    "dictionary-overlay"
    "python3"
    dictionary-overlay-py-path))
+
+(defun dictionary-overlay-stop ()
+  "Stop dictionary-overlay."
+  (interactive)
+  (websocket-bridge-app-exit "dictionary-overlay"))
 
 (defun dictionary-overlay-restart ()
   "Restart dictionary-overlay and show process."
