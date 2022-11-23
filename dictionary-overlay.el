@@ -66,6 +66,9 @@
 ;;  `dictionary-overlay-translation-format'
 ;;    Translation format
 ;;    default = "(%s)"
+;;  `dictionary-overlay-crow-engine'
+;;    Crow translate engine
+;;    default = "google"
 
 ;;; Code:
 
@@ -114,8 +117,11 @@ If nil, show overlay for words not in knownwords list."
 
 (defcustom dictionary-overlay-translation-format "(%s)"
   "Translation format"
-  :group 'dictionary-overlay
-  :type 'boolean)
+  :group 'dictionary-overlay)
+
+(defcustom dictionary-overlay-crow-engine "google"
+  "Crow translate engine"
+  :group 'dictionary-overlay)
 
 (defun dictionary-overlay-start ()
   "Start dictionary-overlay."

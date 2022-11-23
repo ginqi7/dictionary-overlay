@@ -63,6 +63,7 @@ git clone --depth=1 -b main https://github.com/ginqi7/dictionary-overlay ~/.emac
 | dictionary-overlay-just-unknown-words  | t 时使用“生词本”模式，nil 为“透析阅读”模式，默认为 t               |
 | dictionary-overlay-user-data-directory | 用户数据存放的目录，默认值为：“~/.emacs.d/dictionary-overlay-data” |
 | dictionary-overlay-translation-format  | 翻译展示的形式，默认是："(%s)"                                     |
+| dictionary-overlay-crow-engine         | 指定 crow-translate 所使用的引擎，默认为google                     |
 | dictionary-overlay-unknownword         | 生词的展示形态face 默认为nil, 用户可自行修改                       |
 | dictionary-overlay-translation         | 生词的翻译的展示形态 face 默认为nil, 用户可自行修改                |
 
