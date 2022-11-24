@@ -62,12 +62,20 @@
 ;;  `dictionary-overlay-just-unknown-words'
 ;;    If t, show overlay for words in unknownwords list.
 ;;    default = t
+;;  `dictionary-overlay-refresh-buffer-after-mark-word'
+;;    If t, refresh buffer if marking word with:
+;;    `dictionary-overlay-mark-word-known' and
+;;    `dictionary-overlay-mark-word-unknown'
+;;    default = t
 ;;  `dictionary-overlay-user-data-directory'
 ;;    Place user data in Emacs directory.
 ;;    default = (locate-user-emacs-file "dictionary-overlay-data/")
 ;;  `dictionary-overlay-translation-format'
 ;;    Translation format
 ;;    default = "(%s)"
+;;  `dictionary-overlay-crow-engine'
+;;    Crow translate engine
+;;    default = "google"
 
 ;;; Code:
 
@@ -108,6 +116,14 @@ If nil, show overlay for words not in knownwords list."
   :group 'dictionary-overlay
   :type 'boolean)
 
+(defcustom dictionary-overlay-refresh-buffer-after-mark-word t
+  "Refresh buffer or not after marking word as known or unknown.
+Since overlay re-rendering for the whole buffer and word processing
+simultaneously causes noticeable flickering. Refresh buffer manually
+with `dictionary-overlay-render-buffer'."
+  :group 'dictionary-overlay
+  :type 'boolean)
+
 (defcustom dictionary-overlay-user-data-directory
   (locate-user-emacs-file "dictionary-overlay-data/")
   "Place user data in Emacs directory."
@@ -115,9 +131,13 @@ If nil, show overlay for words not in knownwords list."
   :type 'directory)
 
 (defcustom dictionary-overlay-translation-format "(%s)"
-  "Translation format"
+  "Translation format."
   :group 'dictionary-overlay
   :type 'boolean)
+
+(defcustom dictionary-overlay-crow-engine "google"
+  "Crow translate engine"
+  :group 'dictionary-overlay)
 
 (defun dictionary-overlay-start ()
   "Start dictionary-overlay."
@@ -150,7 +170,7 @@ If nil, show overlay for words not in knownwords list."
                          (buffer-string)
                          (point)))
 
-(defun websocket-bridge-call-word(func-name)
+(defun websocket-bridge-call-word (func-name)
   "Call grammarly function on current word by FUNC-NAME."
   (websocket-bridge-call "dictionary-overlay" func-name
                          (downcase (thing-at-point 'word))))
@@ -188,17 +208,19 @@ If nil, show overlay for words not in knownwords list."
   (interactive)
   (websocket-bridge-call-buffer "jump_prev_unknown_word"))
 
-(defun dictionary-overlay-mark-word-known()
+(defun dictionary-overlay-mark-word-known ()
   "Mark current word known."
   (interactive)
   (websocket-bridge-call-word "mark_word_known")
-  (dictionary-overlay-refresh-buffer))
+  (when dictionary-overlay-refresh-buffer-after-mark-word
+    (dictionary-overlay-refresh-buffer)))
 
 (defun dictionary-overlay-mark-word-unknown ()
   "Mark current word unknown."
   (interactive)
   (websocket-bridge-call-word "mark_word_unknown")
-  (dictionary-overlay-refresh-buffer))
+  (when dictionary-overlay-refresh-buffer-after-mark-word
+    (dictionary-overlay-refresh-buffer)))
 
 (defun dictionary-overlay-mark-buffer ()
   "Mark all words as known, except those in `unknownwords' list."

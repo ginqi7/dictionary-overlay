@@ -215,7 +215,7 @@ async def jump_prev_unknown_word(sentence: str, point: int):
 async def web_translate(word: str) -> str:
     try:
         if shutil.which("crow"):
-            result = get_command_result(f'crow -t zh-CN --json -e google "{word}"')
+            result = get_command_result(f'crow -t zh-CN --json -e {crow_engine} "{word}"')
             return json.loads(result)["translation"]
         else:
             import google_translate     # type: ignore
@@ -282,11 +282,13 @@ async def main():
     snapshot()
     global bridge
     bridge = websocket_bridge_python.bridge_app_regist(on_message)
-    await asyncio.gather(init_user_data(), bridge.start())
+    await asyncio.gather(init(), bridge.start())
 
 
-async def init_user_data():
-    global dictionary_file_path, knownwords_file_path, unknownwords_file_path, known_words, unknown_words
+async def init():
+    global dictionary_file_path, knownwords_file_path, unknownwords_file_path, known_words, unknown_words, crow_engine
+    crow_engine = await bridge.get_emacs_var("dictionary-overlay-crow-engine")
+    crow_engine = crow_engine.strip('"')
     user_data_directory = await bridge.get_emacs_var("dictionary-overlay-user-data-directory")
     user_data_directory = os.path.expanduser(user_data_directory.strip('"'))
     dictionary_file_path = os.path.join(user_data_directory, "dictionary.json")
