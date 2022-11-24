@@ -81,7 +81,6 @@
 
 (require 'websocket-bridge)
 
-
 (defgroup dictionary-overlay ()
   "Dictionary overlay for words in buffers."
   :group 'applications)
@@ -154,7 +153,6 @@ with `dictionary-overlay-render-buffer'."
   (dictionary-overlay-stop)
   (dictionary-overlay-start)
   ;; REVIEW: really need bring this buffer to front? or we place it at bottom?
-  ;; (split-window-below)
   ;; (split-window-below -10)
   ;; (other-window 1)
   ;; (websocket-bridge-app-open-buffer "dictionary-overlay")
