@@ -86,18 +86,13 @@
   "Dictionary overlay for words in buffers."
   :group 'applications)
 
-(defface dictionary-overlay-unknownword
-  nil
+(defface dictionary-overlay-unknownword nil
   "Face for dictionary-overlay unknown words."
-  :group 'dictionary-overlay
-  )
+  :group 'dictionary-overlay)
 
-(defface dictionary-overlay-translation
-  nil
+(defface dictionary-overlay-translation nil
   "Face for dictionary-overlay translations."
-  :group 'dictionary-overlay
-  )
-
+  :group 'dictionary-overlay)
 
 (defvar dictionary-overlay-py-path
   (concat (file-name-directory load-file-name)
@@ -114,7 +109,7 @@
   "If t, show overlay for words in unknownwords list.
 If nil, show overlay for words not in knownwords list."
   :group 'dictionary-overlay
-  :type 'boolean)
+  :type '(boolean))
 
 (defcustom dictionary-overlay-refresh-buffer-after-mark-word t
   "Refresh buffer or not after marking word as known or unknown.
@@ -122,22 +117,23 @@ Since overlay re-rendering for the whole buffer and word processing
 simultaneously causes noticeable flickering. Refresh buffer manually
 with `dictionary-overlay-render-buffer'."
   :group 'dictionary-overlay
-  :type 'boolean)
+  :type '(boolean))
 
 (defcustom dictionary-overlay-user-data-directory
   (locate-user-emacs-file "dictionary-overlay-data/")
   "Place user data in Emacs directory."
   :group 'dictionary-overlay
-  :type 'directory)
+  :type '(directory))
 
 (defcustom dictionary-overlay-translation-format "(%s)"
   "Translation format."
   :group 'dictionary-overlay
-  :type 'boolean)
+  :type '(string))
 
-(defcustom dictionary-overlay-crow-engine "google"
-  "Crow translate engine"
-  :group 'dictionary-overlay)
+(defcustom dictionary-overlay-crow-engine "Google"
+  "Crow translate engine."
+  :group 'dictionary-overlay
+  :type '(string))
 
 (defun dictionary-overlay-start ()
   "Start dictionary-overlay."
@@ -164,7 +160,7 @@ with `dictionary-overlay-render-buffer'."
   ;; (websocket-bridge-app-open-buffer "dictionary-overlay")
   )
 
-(defun websocket-bridge-call-buffer(func-name)
+(defun websocket-bridge-call-buffer (func-name)
   "Call grammarly function on current buffer by FUNC-NAME."
   (websocket-bridge-call "dictionary-overlay" func-name
                          (buffer-string)
@@ -238,7 +234,7 @@ with `dictionary-overlay-render-buffer'."
     (websocket-bridge-call-buffer "mark_buffer_unknown")
     (dictionary-overlay-refresh-buffer)))
 
-(defun dictionary-add-overlay-from (begin end source target)
+(defun dictionary-add-overlay-from (begin end _source target)
   "Add a overlay with range BEGIN to END for the translation SOURCE to TARGET."
   (when (not (face-equal 'dictionary-overlay-unknownword (make-face 'dictionary-overlay-default)))
     ;; when not add user face for the word, don't need a overlay in the origin word.
