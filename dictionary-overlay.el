@@ -141,7 +141,7 @@ with `dictionary-overlay-render-buffer'."
   :group 'dictionary-overlay
   :type '(string))
 
-(defcustom dictionary-overlay-crow-engine "Google"
+(defcustom dictionary-overlay-crow-engine "google"
   "Crow translate engine."
   :group 'dictionary-overlay
   :type '(string))
