@@ -28,6 +28,8 @@
 ;;
 ;;  `dictionary-overlay-start'
 ;;    Start dictionary-overlay.
+;;  `dictionary-overlay-stop'
+;;    Stop dictionary-overlay.
 ;;  `dictionary-overlay-restart'
 ;;    Restart dictionary-overlay and show process.
 ;;  `dictionary-overlay-render-buffer'
@@ -145,14 +147,22 @@ with `dictionary-overlay-render-buffer'."
    "python3"
    dictionary-overlay-py-path))
 
-(defun dictionary-overlay-restart ()
-  "Restart dictionary-overlay and show process."
+(defun dictionary-overlay-stop ()
+  "Stop dictionary-overlay."
   (interactive)
-  (websocket-bridge-app-exit "dictionary-overlay")
-  (dictionary-overlay-start)
-  (split-window-below)
-  (websocket-bridge-app-open-buffer "dictionary-overlay"))
+  (websocket-bridge-app-exit "dictionary-overlay"))
 
+(defun dictionary-overlay-restart ()
+  "Restart dictionary-overlay."
+  (interactive)
+  (dictionary-overlay-stop)
+  (dictionary-overlay-start)
+  ;; REVIEW: really need bring this buffer to front? or we place it at bottom?
+  ;; (split-window-below)
+  ;; (split-window-below -10)
+  ;; (other-window 1)
+  ;; (websocket-bridge-app-open-buffer "dictionary-overlay")
+  )
 
 (defun websocket-bridge-call-buffer(func-name)
   "Call grammarly function on current buffer by FUNC-NAME."
@@ -164,7 +174,6 @@ with `dictionary-overlay-render-buffer'."
   "Call grammarly function on current word by FUNC-NAME."
   (websocket-bridge-call "dictionary-overlay" func-name
                          (downcase (thing-at-point 'word))))
-
 
 (defun dictionary-overlay-render-buffer ()
   "Render current buffer."
