@@ -44,6 +44,7 @@ git clone --depth=1 -b main https://github.com/ginqi7/dictionary-overlay ~/.emac
 | 命令                                        | 说明                                                       |
 |---------------------------------------------+------------------------------------------------------------|
 | dictionary-overlay-start                    | 启动 dictionary-overlay 应用                               |
+| dictionary-overlay-stop                     | 退出 dictionary-overlay 应用                               |
 | dictionary-overlay-restart                  | 重启 dictionary-overlay 应用                               |
 | dictionary-overlay-render-buffer            | 使用翻译渲染当前 buffer                                    |
 | dictionary-overlay-toggle                   | 打开\关闭翻译渲染当前 buffer                               |
@@ -66,6 +67,7 @@ git clone --depth=1 -b main https://github.com/ginqi7/dictionary-overlay ~/.emac
 | dictionary-overlay-translation-format             | 翻译展示的形式，默认是："(%s)"                                    |
 | dictionary-overlay-unknownword                    | 生词的展示形态 face 默认为 nil, 用户可自行修改                      |
 | dictionary-overlay-translation                    | 生词的翻译的展示形态 face 默认为 nil, 用户可自行修改                 |
+
 
 ** face
 
