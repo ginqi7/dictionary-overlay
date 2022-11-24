@@ -116,8 +116,9 @@ If nil, show overlay for words not in knownwords list."
   :type 'directory)
 
 (defcustom dictionary-overlay-translation-format "(%s)"
-  "Translation format"
-  :group 'dictionary-overlay)
+  "Translation format."
+  :group 'dictionary-overlay
+  :type 'boolean)
 
 (defcustom dictionary-overlay-crow-engine "google"
   "Crow translate engine"
