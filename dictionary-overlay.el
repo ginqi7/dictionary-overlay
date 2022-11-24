@@ -67,6 +67,10 @@
 ;;    `dictionary-overlay-mark-word-known' and
 ;;    `dictionary-overlay-mark-word-unknown'
 ;;    default = t
+;;  `dictionary-overlay-position'
+;;    If value is 'after, put translation after word
+;;    If value is 'help-echo, show it when mouse over word
+;;    default = 'after
 ;;  `dictionary-overlay-user-data-directory'
 ;;    Place user data in Emacs directory.
 ;;    default = (locate-user-emacs-file "dictionary-overlay-data/")
@@ -109,6 +113,14 @@
 If nil, show overlay for words not in knownwords list."
   :group 'dictionary-overlay
   :type '(boolean))
+
+(defcustom dictionary-overlay-position 'after
+  "Where to show translation.
+If value is \\='after, put translation after word
+If value is \\='help-echo, show it when mouse over word."
+  :group 'dictionary-overlay
+  :type '(choice (cons :tag "Show after word" 'after)
+                 (cons :tag "Show in help-echo" 'help-echo)))
 
 (defcustom dictionary-overlay-refresh-buffer-after-mark-word t
   "Refresh buffer or not after marking word as known or unknown.
@@ -234,14 +246,16 @@ with `dictionary-overlay-render-buffer'."
 
 (defun dictionary-add-overlay-from (begin end _source target)
   "Add a overlay with range BEGIN to END for the translation SOURCE to TARGET."
-  (when (not (face-equal 'dictionary-overlay-unknownword (make-face 'dictionary-overlay-default)))
-    ;; when not add user face for the word, don't need a overlay in the origin word.
-    (let ((ov (make-overlay begin end)))
-      (overlay-put ov 'display source)
-      (overlay-put ov 'face 'dictionary-overlay-unknownword)))
-  (let ((ov (make-overlay end (+ end 1))))
-    (overlay-put ov 'display (concat (format dictionary-overlay-translation-format target) (string (char-after end))))
-    (overlay-put ov 'face 'dictionary-overlay-translation)))
+  (let ((ov (make-overlay begin end)))
+    (overlay-put ov 'face 'dictionary-overlay-unknownword)
+    (pcase dictionary-overlay-position
+      ('after (overlay-put
+               ov 'after-string
+               (propertize (format dictionary-overlay-translation-format target)
+                           'face 'dictionary-overlay-translation)))
+      ('help-echo (overlay-put
+                   ov 'help-echo
+                   (format dictionary-overlay-translation-format target))))))
 
 (defun dictionary-overlay-install ()
   "Install all python dependencies."
