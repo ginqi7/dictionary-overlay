@@ -52,6 +52,8 @@ git clone --depth=1 -b main https://github.com/ginqi7/dictionary-overlay ~/.emac
 | dictionary-overlay-jump-prev-unknown-word   | 跳转到上一个生词                                           |
 | dictionary-overlay-mark-word-known          | 标记当前单词为“已知”                                       |
 | dictionary-overlay-mark-word-unknown        | 标记当前单词为“生词”                                       |
+| dictionary-overlay-mark-word-smart          | 生词本模式时，默认标记当前单词为“未知”，透析模式时，标为“已知”    |
+| dictionary-overlay-mark-word-smart-reversely| 功能同上，但生词本模式时标记为“已知”，透析模式时，标为”未知“     |
 | dictionary-overlay-mark-buffer              | 标签当前 buffer 中所有未标记为“生词”的单词全为“已知”       |
 | dictionary-overlay-mark-buffer-unknown      | 标签当前 buffer 中所有未标记为“生词”的单词全为“未知”       |
 | dictionary-overlay-install                  | 安装 dictionary-overlay 所依赖的必选 python 包             |
@@ -65,6 +67,8 @@ git clone --depth=1 -b main https://github.com/ginqi7/dictionary-overlay ~/.emac
 | dictionary-overlay-refresh-buffer-after-mark-word | t 时每次标记“单个词”都会重新渲染整个buffer, 默认为 t                |
 | dictionary-overlay-user-data-directory            | 用户数据存放 目录，默认值为：“~/.emacs.d/dictionary-overlay-data” |
 | dictionary-overlay-position                       | 显示翻译的位置：词后，help-echo, 默认在词后                       |
+| dictionary-overlay-inihibit-keymap                | t 时关闭 keymap, 默认为 nil                                    |
+| dictionary-overlay-mark-word-auto-jump            | t 时，首次渲染/刷新后标记单词时自动跳到下一个。之后根据的方向取决于是否使用了生词跳转 |
 | dictionary-overlay-translation-format             | 翻译展示的形式，默认是："(%s)"                                   |
 | dictionary-overlay-unknownword                    | 生词的展示形态 face 默认为 nil, 用户可自行修改                     |
 | dictionary-overlay-translation                    | 生词的翻译的展示形态 face 默认为 nil, 用户可自行修改                |

@@ -44,6 +44,12 @@
 ;;    Mark current word known.
 ;;  `dictionary-overlay-mark-word-unknown'
 ;;    Mark current word unknown.
+;;  `dictionary-overlay-jump-out-of-overlay-maybe'
+;;    Try to leave overlay.
+;;  `dictionary-overlay-mark-word-smart'
+;;    Smartly mark current word as known or unknow.
+;;  `dictionary-overlay-mark-word-smart-reversely'
+;;    Smartly mark current word as known or unknow, inverse version of the above.
 ;;  `dictionary-overlay-mark-buffer'
 ;;    Mark all words as known, except those in `unknownwords' list.
 ;;  `dictionary-overlay-mark-buffer-unknown'
@@ -60,6 +66,15 @@
 ;; Below are customizable option list:
 ;;
 ;;  `dictionary-overlay-just-unknown-words'
+;;    If t, show overlay for words in unknownwords list.
+;;    default = t
+;;  `dictionary-overlay-mark-word-auto-jump'
+;;    If t, for the first word after render/refresh, always auto jump to next
+;;    unknown word after mark. If `dictionary-overlay-jump-prev-unknown-word' or
+;;    `dictionary-overlay-jump-next-unknown-word' is used, the following jump direction
+;;     changes accordingly.
+;;    default = t
+;;  `dictionary-overlay-inhibit-keymap'
 ;;    If t, show overlay for words in unknownwords list.
 ;;    default = t
 ;;  `dictionary-overlay-refresh-buffer-after-mark-word'
@@ -146,6 +161,28 @@ with `dictionary-overlay-render-buffer'."
   :group 'dictionary-overlay
   :type '(string))
 
+;; SRC: ideas from `symbol-overlay', tip hat!
+(defcustom dictionary-overlay-inhibit-keymap nil
+  "When non-nil, don't use `dictionary-overlay-map'.
+This is intended for buffers/modes that use the keymap text
+property for their own purposes.  Because this package uses
+overlays it would always override the text property keymaps
+of such packages."
+  :group 'dictionary-overlay
+  :type '(boolean))
+
+(defvar dictionary-overlay-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "r") #'dictionary-overlay-refresh-buffer)
+    (define-key map (kbd "p") #'dictionary-overlay-jump-prev-unknown-word)
+    (define-key map (kbd "n") #'dictionary-overlay-jump-next-unknown-word)
+    (define-key map (kbd "m") #'dictionary-overlay-mark-word-smart)
+    (define-key map (kbd "M") #'dictionary-overlay-mark-word-smart-reversely)
+    (define-key map (kbd "<escape>") #'dictionary-overlay-jump-out-of-overlay-maybe)
+    map)
+  "Keymap automatically activated inside overlays.
+You can re-bind the commands to any keys you prefer.")
+
 (defun dictionary-overlay-start ()
   "Start dictionary-overlay."
   (interactive)
@@ -200,24 +237,50 @@ with `dictionary-overlay-render-buffer'."
 
 (defun dictionary-overlay-refresh-buffer ()
   "Refresh current buffer."
+  (interactive)
   (when dictionary-overlay-active-p
     (remove-overlays)
     (websocket-bridge-call-buffer "render")))
 
+(defcustom dictionary-overlay-mark-word-auto-jump t
+  "Auto jump to next unknown word after marking word.
+Usually, to the next unknown word."
+  :group 'dictionary-overlay
+  :type '(boolean))
+
+(defvar-local dictionary-overlay-jump-direction 'next
+  "Direction to jump word.")
+
 (defun dictionary-overlay-jump-next-unknown-word ()
   "Jump to next unknown word."
   (interactive)
-  (websocket-bridge-call-buffer "jump_next_unknown_word"))
+  (websocket-bridge-call-buffer "jump_next_unknown_word")
+  (setq-local dictionary-overlay-jump-direction 'next))
 
 (defun dictionary-overlay-jump-prev-unknown-word ()
   "Jump to prev unknown word."
   (interactive)
-  (websocket-bridge-call-buffer "jump_prev_unknown_word"))
+  (websocket-bridge-call-buffer "jump_prev_unknown_word")
+  (setq-local dictionary-overlay-jump-direction 'prev))
+
+(defun dictionary-overlay-jump-out-of-overlay-maybe ()
+  "Jump out overlay so that we no longer in keymap.
+Usually overlay keymap has a higher priority than local major
+mode and minor mode key map. Jumping out of overlay facilitates the
+usage of original keymap. We say MAYBE, it means current approcach
+is imperfect."
+  (interactive)
+  ;; WIP 2022-11-25: need improvement? if so, PR is welcomed.
+  (forward-word))
 
 (defun dictionary-overlay-mark-word-known ()
   "Mark current word known."
   (interactive)
   (websocket-bridge-call-word "mark_word_known")
+  (when dictionary-overlay-mark-word-auto-jump
+    (pcase dictionary-overlay-jump-direction
+      (`next (dictionary-overlay-jump-next-unknown-word))
+      (`prev (dictionary-overlay-jump-prev-unknown-word))))
   (when dictionary-overlay-refresh-buffer-after-mark-word
     (dictionary-overlay-refresh-buffer)))
 
@@ -225,12 +288,17 @@ with `dictionary-overlay-render-buffer'."
   "Mark current word unknown."
   (interactive)
   (websocket-bridge-call-word "mark_word_unknown")
+  (when dictionary-overlay-mark-word-auto-jump
+    (dictionary-overlay-jump-next-unknown-word))
   (when dictionary-overlay-refresh-buffer-after-mark-word
     (dictionary-overlay-refresh-buffer)))
 
 (defun dictionary-overlay-mark-word-smart ()
-  "Smartly mark current word known or unknown.
-Based on value of `dictionary-overlay-just-unknown-words'"
+  "Smartly mark current word as known or unknown.
+Based on value of `dictionary-overlay-just-unknown-words'
+Usually when value is t, we want to mark word as unknown. Vice versa.
+If you need reverse behavior, use:
+`dictionary-overlay-mark-word-smart-reversely' instead."
   (interactive)
   (if dictionary-overlay-just-unknown-words
       (dictionary-overlay-mark-word-unknown)
@@ -269,7 +337,9 @@ Based on value of `dictionary-overlay-just-unknown-words'"
                       ov 'after-string
                       (propertize (format dictionary-overlay-translation-format target)
                                   'face 'dictionary-overlay-translation))
-                     (overlay-put ov 'evaporate t)))
+                     (overlay-put ov 'evaporate t)
+                     (unless dictionary-overlay-inhibit-keymap
+                       (overlay-put ov 'keymap dictionary-overlay-map))))
       ('help-echo (overlay-put
                    ov 'help-echo
                    (format dictionary-overlay-translation-format target))))))
