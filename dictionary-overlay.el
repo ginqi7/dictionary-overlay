@@ -265,10 +265,11 @@ Based on value of `dictionary-overlay-just-unknown-words'"
   (let ((ov (make-overlay begin end)))
     (overlay-put ov 'face 'dictionary-overlay-unknownword)
     (pcase dictionary-overlay-position
-      ('after (overlay-put
-               ov 'after-string
-               (propertize (format dictionary-overlay-translation-format target)
-                           'face 'dictionary-overlay-translation)))
+      ('after (progn (overlay-put
+                      ov 'after-string
+                      (propertize (format dictionary-overlay-translation-format target)
+                                  'face 'dictionary-overlay-translation))
+                     (overlay-put ov 'evaporate t)))
       ('help-echo (overlay-put
                    ov 'help-echo
                    (format dictionary-overlay-translation-format target))))))
