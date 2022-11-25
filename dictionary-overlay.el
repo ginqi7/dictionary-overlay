@@ -68,7 +68,7 @@
 ;;  `dictionary-overlay-just-unknown-words'
 ;;    If t, show overlay for words in unknownwords list.
 ;;    default = t
-;;  `dictionary-overlay-mark-word-auto-jump'
+;;  `dictionary-overlay-auto-jump-after-mark-word'
 ;;    If t, for the first word after render/refresh, always auto jump to next
 ;;    unknown word after mark. If `dictionary-overlay-jump-prev-unknown-word' or
 ;;    `dictionary-overlay-jump-next-unknown-word' is used, the following jump direction
@@ -171,6 +171,15 @@ of such packages."
   :group 'dictionary-overlay
   :type '(boolean))
 
+(defcustom dictionary-overlay-auto-jump-after-mark-word t
+  "Auto jump to next unknown word after marking word.
+Usually, to the next unknown word."
+  :group 'dictionary-overlay
+  :type '(boolean))
+
+(defvar-local dictionary-overlay-jump-direction 'next
+  "Direction to jump word.")
+
 (defvar dictionary-overlay-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "r") #'dictionary-overlay-refresh-buffer)
@@ -242,15 +251,6 @@ You can re-bind the commands to any keys you prefer.")
     (remove-overlays)
     (websocket-bridge-call-buffer "render")))
 
-(defcustom dictionary-overlay-mark-word-auto-jump t
-  "Auto jump to next unknown word after marking word.
-Usually, to the next unknown word."
-  :group 'dictionary-overlay
-  :type '(boolean))
-
-(defvar-local dictionary-overlay-jump-direction 'next
-  "Direction to jump word.")
-
 (defun dictionary-overlay-jump-next-unknown-word ()
   "Jump to next unknown word."
   (interactive)
@@ -268,16 +268,16 @@ Usually, to the next unknown word."
 Usually overlay keymap has a higher priority than local major
 mode and minor mode key map. Jumping out of overlay facilitates the
 usage of original keymap. We say MAYBE, it means current approcach
-is imperfect."
+is imperfect. The command name is subjected to change depending on
+reliablity."
   (interactive)
-  ;; WIP 2022-11-25: need improvement? if so, PR is welcomed.
   (forward-word))
 
 (defun dictionary-overlay-mark-word-known ()
   "Mark current word known."
   (interactive)
   (websocket-bridge-call-word "mark_word_known")
-  (when dictionary-overlay-mark-word-auto-jump
+  (when dictionary-overlay-auto-jump-after-mark-word
     (pcase dictionary-overlay-jump-direction
       (`next (dictionary-overlay-jump-next-unknown-word))
       (`prev (dictionary-overlay-jump-prev-unknown-word))))
@@ -288,7 +288,7 @@ is imperfect."
   "Mark current word unknown."
   (interactive)
   (websocket-bridge-call-word "mark_word_unknown")
-  (when dictionary-overlay-mark-word-auto-jump
+  (when dictionary-overlay-auto-jump-after-mark-word
     (dictionary-overlay-jump-next-unknown-word))
   (when dictionary-overlay-refresh-buffer-after-mark-word
     (dictionary-overlay-refresh-buffer)))
