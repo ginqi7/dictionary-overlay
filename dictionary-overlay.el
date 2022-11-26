@@ -100,7 +100,8 @@
 
 (require 'websocket-bridge)
 
-(defgroup dictionary-overlay ()
+(defgroup dictionary-overlay
+  ()
   "Dictionary overlay for words in buffers."
   :group 'applications)
 
@@ -113,15 +114,26 @@
   :group 'dictionary-overlay)
 
 (defvar dictionary-overlay-py-path
-  (concat (file-name-directory load-file-name)
-          "dictionary-overlay.py"))
+  (concat
+   (file-name-directory load-file-name)
+   "dictionary-overlay.py"))
 
 (defvar dictionary-overlay-py-requirements-path
-  (concat (file-name-directory load-file-name)
-          "requirements.txt"))
+  (concat (file-name-directory load-file-name) "requirements.txt"))
 
 (defvar-local dictionary-overlay-active-p nil
   "Check current buffer if active dictionary-overlay.")
+
+(defvar-local dictionary-overlay-hash-table
+    (make-hash-table :test 'equal)
+  "Hash-table contains overlays for dictionary-overlay.
+The key's format is begin:end:word:translation.")
+
+(defvar-local dictionary-overlay-hash-table-keys
+    '()
+  "Contains all hashtable-keys for dictionary-overlay.
+The key's format is begin:end:word:translation.")
+
 
 (defcustom dictionary-overlay-just-unknown-words t
   "If t, show overlay for words in unknownwords list.
@@ -134,8 +146,9 @@ If nil, show overlay for words not in knownwords list."
 If value is \\='after, put translation after word
 If value is \\='help-echo, show it when mouse over word."
   :group 'dictionary-overlay
-  :type '(choice (cons :tag "Show after word" 'after)
-                 (cons :tag "Show in help-echo" 'help-echo)))
+  :type '(choice
+          (cons :tag "Show after word" 'after)
+          (cons :tag "Show in help-echo" 'help-echo)))
 
 (defcustom dictionary-overlay-refresh-buffer-after-mark-word t
   "Refresh buffer or not after marking word as known or unknown.
@@ -151,7 +164,8 @@ with `dictionary-overlay-render-buffer'."
   :group 'dictionary-overlay
   :type '(directory))
 
-(defcustom dictionary-overlay-translation-format "(%s)"
+(defcustom dictionary-overlay-translation-format
+  "(%s)"
   "Translation format."
   :group 'dictionary-overlay
   :type '(string))
@@ -183,12 +197,22 @@ Usually, to the next unknown word."
 (defvar dictionary-overlay-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "r") #'dictionary-overlay-refresh-buffer)
-    (define-key map (kbd "p") #'dictionary-overlay-jump-prev-unknown-word)
-    (define-key map (kbd "n") #'dictionary-overlay-jump-next-unknown-word)
+    (define-key map
+                (kbd "p")
+                #'dictionary-overlay-jump-prev-unknown-word)
+    (define-key map
+                (kbd "n")
+                #'dictionary-overlay-jump-next-unknown-word)
     (define-key map (kbd "m") #'dictionary-overlay-mark-word-smart)
-    (define-key map (kbd "M") #'dictionary-overlay-mark-word-smart-reversely)
-    (define-key map (kbd "c") #'dictionary-overlay-modify-translation)
-    (define-key map (kbd "<escape>") #'dictionary-overlay-jump-out-of-overlay)
+    (define-key map
+                (kbd "M")
+                #'dictionary-overlay-mark-word-smart-reversely)
+    (define-key map
+                (kbd "c")
+                #'dictionary-overlay-modify-translation)
+    (define-key map
+                (kbd "<escape>")
+                #'dictionary-overlay-jump-out-of-overlay)
     map)
   "Keymap automatically activated inside overlays.
 You can re-bind the commands to any keys you prefer.")
@@ -225,8 +249,10 @@ You can re-bind the commands to any keys you prefer.")
 
 (defun websocket-bridge-call-word (func-name)
   "Call grammarly function on current word by FUNC-NAME."
-  (websocket-bridge-call "dictionary-overlay" func-name
-                         (downcase (thing-at-point 'word))))
+  (let ((word (downcase (thing-at-point 'word))))
+    (websocket-bridge-call "dictionary-overlay" func-name
+                           (downcase (thing-at-point 'word)))
+    (message word)))
 
 (defun dictionary-overlay-render-buffer ()
   "Render current buffer."
@@ -241,16 +267,28 @@ You can re-bind the commands to any keys you prefer.")
   (interactive)
   (if dictionary-overlay-active-p
       (progn
-        (remove-overlays)
+        ;; reset all hash-table-keys and delete all overlays
+        (setq-local dictionary-overlay-hash-table-keys '())
+        (dictionary-overlay-refresh-overlays)
         (setq-local dictionary-overlay-active-p nil))
     (dictionary-overlay-render-buffer)))
+
+(defun dictionary-overlay-refresh-overlays ()
+  "Refresh overlays: remove overlays and hash-table items when not needed."
+  (maphash
+   (lambda (key val)
+     (when (not (member key dictionary-overlay-hash-table-keys))
+       (remhash key dictionary-overlay-hash-table)
+       (delete-overlay val)))
+   dictionary-overlay-hash-table))
 
 (defun dictionary-overlay-refresh-buffer ()
   "Refresh current buffer."
   (interactive)
   (when dictionary-overlay-active-p
-    (remove-overlays)
-    (websocket-bridge-call-buffer "render")))
+    (progn
+      (setq-local dictionary-overlay-hash-table-keys '())
+      (websocket-bridge-call-buffer "render"))))
 
 (defun dictionary-overlay-jump-next-unknown-word ()
   "Jump to next unknown word."
@@ -279,8 +317,10 @@ depending on reliablity."
   (websocket-bridge-call-word "mark_word_known")
   (when dictionary-overlay-auto-jump-after-mark-word
     (pcase dictionary-overlay-jump-direction
-      (`next (dictionary-overlay-jump-next-unknown-word))
-      (`prev (dictionary-overlay-jump-prev-unknown-word))))
+      (`next
+       (dictionary-overlay-jump-next-unknown-word))
+      (`prev
+       (dictionary-overlay-jump-prev-unknown-word))))
   (when dictionary-overlay-refresh-buffer-after-mark-word
     (dictionary-overlay-refresh-buffer)))
 
@@ -328,21 +368,32 @@ Based on value of `dictionary-overlay-just-unknown-words'"
     (websocket-bridge-call-buffer "mark_buffer_unknown")
     (dictionary-overlay-refresh-buffer)))
 
-(defun dictionary-add-overlay-from (begin end _source target)
+(defun dictionary-add-overlay-from (begin end source target)
   "Add a overlay with range BEGIN to END for the translation SOURCE to TARGET."
-  (let ((ov (make-overlay begin end)))
-    (overlay-put ov 'face 'dictionary-overlay-unknownword)
-    (pcase dictionary-overlay-position
-      ('after (progn (overlay-put
-                      ov 'after-string
-                      (propertize (format dictionary-overlay-translation-format target)
-                                  'face 'dictionary-overlay-translation))
-                     (overlay-put ov 'evaporate t)
-                     (unless dictionary-overlay-inhibit-keymap
-                       (overlay-put ov 'keymap dictionary-overlay-map))))
-      ('help-echo (overlay-put
-                   ov 'help-echo
-                   (format dictionary-overlay-translation-format target))))))
+  (let ((ov (make-overlay begin end))
+        (hash-table-key
+         (format "%s:%s:%s:%s" begin end source target)))
+    ;; record the overlay's key
+    (add-to-list 'dictionary-overlay-hash-table-keys hash-table-key)
+    (when (not (gethash hash-table-key dictionary-overlay-hash-table))
+      ;; create an overly only when the key not exists
+      (overlay-put ov 'face 'dictionary-overlay-unknownword)
+      (pcase dictionary-overlay-position
+        ('after
+         (progn
+           (overlay-put
+            ov 'after-string
+            (propertize
+             (format dictionary-overlay-translation-format target)
+             'face 'dictionary-overlay-translation))
+           (overlay-put ov 'evaporate t)
+           (unless dictionary-overlay-inhibit-keymap
+             (overlay-put ov 'keymap dictionary-overlay-map))))
+        ('help-echo
+         (overlay-put
+          ov 'help-echo
+          (format dictionary-overlay-translation-format target))))
+      (puthash hash-table-key ov dictionary-overlay-hash-table))))
 
 (defun dictionary-overlay-install ()
   "Install all python dependencies."
@@ -401,8 +452,8 @@ Based on value of `dictionary-overlay-just-unknown-words'"
 
 (defun dictionary-overlay-choose-translate (word candidates)
   "Choose WORD's translation CANDIDATES."
-  (let ((translation (completing-read
-                      "Choose or input translation: " candidates)))
+  (let ((translation
+         (completing-read "Choose or input translation: " candidates)))
     (websocket-bridge-call "dictionary-overlay"
                            "update_translation"
                            word
