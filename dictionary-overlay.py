@@ -91,6 +91,7 @@ async def on_message(message):
     if cmd == "render":
         sentence = info[1][1]
         await render(sentence)
+        await run_and_log("(dictionary-overlay-refresh-overlays)")
     elif cmd == "jump_next_unknown_word":
         sentence = info[1][1]
         point = info[1][2]
