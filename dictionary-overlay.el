@@ -73,7 +73,7 @@
 ;;    unknown word after mark. If `dictionary-overlay-jump-prev-unknown-word' or
 ;;    `dictionary-overlay-jump-next-unknown-word' is used, the following jump direction
 ;;     changes accordingly.
-;;    default = t
+;;    default = nil
 ;;  `dictionary-overlay-inhibit-keymap'
 ;;    If t, show overlay for words in unknownwords list.
 ;;    default = t
@@ -171,7 +171,7 @@ of such packages."
   :group 'dictionary-overlay
   :type '(boolean))
 
-(defcustom dictionary-overlay-auto-jump-after-mark-word t
+(defcustom dictionary-overlay-auto-jump-after-mark-word nil
   "Auto jump to next unknown word after marking word.
 Usually, to the next unknown word."
   :group 'dictionary-overlay
