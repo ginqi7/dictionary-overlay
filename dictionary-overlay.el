@@ -187,6 +187,7 @@ Usually, to the next unknown word."
     (define-key map (kbd "n") #'dictionary-overlay-jump-next-unknown-word)
     (define-key map (kbd "m") #'dictionary-overlay-mark-word-smart)
     (define-key map (kbd "M") #'dictionary-overlay-mark-word-smart-reversely)
+    (define-key map (kbd "c") #'dictionary-overlay-modify-translation)
     (define-key map (kbd "<escape>") #'dictionary-overlay-jump-out-of-overlay)
     map)
   "Keymap automatically activated inside overlays.
