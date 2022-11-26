@@ -50,6 +50,7 @@ git clone --depth=1 -b main https://github.com/ginqi7/dictionary-overlay ~/.emac
 | dictionary-overlay-toggle                   | 打开\关闭翻译渲染当前 buffer                               |
 | dictionary-overlay-jump-next-unknown-word   | 跳转到下一个生词                                           |
 | dictionary-overlay-jump-prev-unknown-word   | 跳转到上一个生词                                           |
+| dictionary-overlay-jump-out-overlay         | 光标跳到词末，离开overlay，恢复正常keymap                    |
 | dictionary-overlay-mark-word-known          | 标记当前单词为“已知”                                       |
 | dictionary-overlay-mark-word-unknown        | 标记当前单词为“生词”                                       |
 | dictionary-overlay-mark-word-smart          | 生词本模式时，默认标记当前单词为“未知”，透析模式时，标为“已知”    |

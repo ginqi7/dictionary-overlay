@@ -44,8 +44,8 @@
 ;;    Mark current word known.
 ;;  `dictionary-overlay-mark-word-unknown'
 ;;    Mark current word unknown.
-;;  `dictionary-overlay-jump-out-of-overlay-maybe'
-;;    Try to leave overlay.
+;;  `dictionary-overlay-jump-out-of-overlay'
+;;    Move cursor out of overlay.
 ;;  `dictionary-overlay-mark-word-smart'
 ;;    Smartly mark current word as known or unknow.
 ;;  `dictionary-overlay-mark-word-smart-reversely'
@@ -187,7 +187,7 @@ Usually, to the next unknown word."
     (define-key map (kbd "n") #'dictionary-overlay-jump-next-unknown-word)
     (define-key map (kbd "m") #'dictionary-overlay-mark-word-smart)
     (define-key map (kbd "M") #'dictionary-overlay-mark-word-smart-reversely)
-    (define-key map (kbd "<escape>") #'dictionary-overlay-jump-out-of-overlay-maybe)
+    (define-key map (kbd "<escape>") #'dictionary-overlay-jump-out-of-overlay)
     map)
   "Keymap automatically activated inside overlays.
 You can re-bind the commands to any keys you prefer.")
@@ -263,13 +263,12 @@ You can re-bind the commands to any keys you prefer.")
   (websocket-bridge-call-buffer "jump_prev_unknown_word")
   (setq-local dictionary-overlay-jump-direction 'prev))
 
-(defun dictionary-overlay-jump-out-of-overlay-maybe ()
+(defun dictionary-overlay-jump-out-of-overlay ()
   "Jump out overlay so that we no longer in keymap.
 Usually overlay keymap has a higher priority than local major
 mode and minor mode key map. Jumping out of overlay facilitates the
-usage of original keymap. We say MAYBE, it means current approcach
-is imperfect. The command name is subjected to change depending on
-reliablity."
+usage of original keymap. The command name is subjected to change
+depending on reliablity."
   (interactive)
   (forward-word))
 
