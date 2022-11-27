@@ -81,6 +81,9 @@
 ;;    If value is 'after, put translation after word
 ;;    If value is 'help-echo, show it when mouse over word
 ;;    default = 'after
+;;  `dictonary-overlay-recenter-after-mark-and-jump'
+;;    If t, recenter after mark or jump.
+;;    default is nil
 ;;  `dictionary-overlay-user-data-directory'
 ;;    Place user data in Emacs directory.
 ;;    default = (locate-user-emacs-file "dictionary-overlay-data/")
@@ -288,7 +291,7 @@ You can re-bind the commands to any keys you prefer.")
   (websocket-bridge-call-buffer "jump_next_unknown_word")
   (setq-local dictionary-overlay-jump-direction 'next)
   (when dictonary-overlay-recenter-after-mark-and-jump
-    (recenter-top-bottom 20)))
+    (recenter)))
 
 (defun dictionary-overlay-jump-prev-unknown-word ()
   "Jump to prev unknown word."
@@ -296,7 +299,7 @@ You can re-bind the commands to any keys you prefer.")
   (websocket-bridge-call-buffer "jump_prev_unknown_word")
   (setq-local dictionary-overlay-jump-direction 'prev)
   (when dictonary-overlay-recenter-after-mark-and-jump
-    (recenter-top-bottom 20)))
+    (recenter)))
 
 (defun dictionary-overlay-jump-out-of-overlay ()
   "Jump out overlay so that we no longer in keymap.
@@ -317,10 +320,9 @@ depending on reliablity."
        (dictionary-overlay-jump-next-unknown-word))
       (`prev
        (dictionary-overlay-jump-prev-unknown-word))))
-  (when dictionary-overlay-refresh-buffer-after-mark-word
-    (dictionary-overlay-refresh-buffer))
+  (dictionary-overlay-refresh-buffer)
   (when dictonary-overlay-recenter-after-mark-and-jump
-    (recenter-top-bottom 20)))
+    (recenter)))
 
 (defun dictionary-overlay-mark-word-unknown ()
   "Mark current word unknown."
@@ -328,10 +330,9 @@ depending on reliablity."
   (websocket-bridge-call-word "mark_word_unknown")
   (when dictionary-overlay-auto-jump-after-mark-word
     (dictionary-overlay-jump-next-unknown-word))
-  (when dictionary-overlay-refresh-buffer-after-mark-word
-    (dictionary-overlay-refresh-buffer))
+  (dictionary-overlay-refresh-buffer)
   (when dictonary-overlay-recenter-after-mark-and-jump
-    (recenter-top-bottom 20)))
+    (recenter)))
 
 (defun dictionary-overlay-mark-word-smart ()
   "Smartly mark current word as known or unknown.
