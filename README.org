@@ -68,7 +68,7 @@ git clone --depth=1 -b main https://github.com/ginqi7/dictionary-overlay ~/.emac
 | dictionary-overlay-user-data-directory            | 用户数据存放 目录，默认值为：“~/.emacs.d/dictionary-overlay-data” |
 | dictionary-overlay-position                       | 显示翻译的位置：词后，help-echo, 默认在词后                       |
 | dictionary-overlay-inihibit-keymap                | t 时关闭 keymap, 默认为 nil                                    |
-| dictionary-overlay-auto-jump-after-mark-word      | t 时，首次渲染/刷新后标记单词时自动跳到下一个。之后根据的方向取决于是否使用了生词跳转 |
+| dictionary-overlay-auto-jump-after                | 可选项：1. 标记单词后(mark-word)，2. 刷新(refresh-buffer)        |
 | dictionary-overlay-translation-format             | 翻译展示的形式，默认是："(%s)"                                   |
 | dictionary-overlay-unknownword                    | 生词的展示形态 face 默认为 nil, 用户可自行修改                     |
 | dictionary-overlay-translation                    | 生词的翻译的展示形态 face 默认为 nil, 用户可自行修改                |
