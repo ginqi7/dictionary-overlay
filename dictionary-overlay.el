@@ -74,11 +74,6 @@
 ;;  `dictionary-overlay-inhibit-keymap'
 ;;    If t, show overlay for words in unknownwords list.
 ;;    default = t
-;;  `dictionary-overlay-refresh-buffer-after-mark-word'
-;;    If t, refresh buffer if marking word with:
-;;    `dictionary-overlay-mark-word-known' and
-;;    `dictionary-overlay-mark-word-unknown'
-;;    default = t
 ;;  `dictionary-overlay-position'
 ;;    If value is 'after, put translation after word
 ;;    If value is 'help-echo, show it when mouse over word
@@ -146,14 +141,6 @@ If value is \\='help-echo, show it when mouse over word."
   :type '(choice
           (cons :tag "Show after word" 'after)
           (cons :tag "Show in help-echo" 'help-echo)))
-
-(defcustom dictionary-overlay-refresh-buffer-after-mark-word t
-  "Refresh buffer or not after marking word as known or unknown.
-Since overlay re-rendering for the whole buffer and word processing
-simultaneously causes noticeable flickering. Refresh buffer manually
-with `dictionary-overlay-render-buffer'."
-  :group 'dictionary-overlay
-  :type '(boolean))
 
 (defcustom dictionary-overlay-user-data-directory
   (locate-user-emacs-file "dictionary-overlay-data/")
@@ -320,8 +307,7 @@ depending on reliablity."
        (dictionary-overlay-jump-next-unknown-word))
       (`prev
        (dictionary-overlay-jump-prev-unknown-word))))
-  (when dictionary-overlay-refresh-buffer-after-mark-word
-    (dictionary-overlay-refresh-buffer)))
+  (dictionary-overlay-refresh-buffer))
 
 (defun dictionary-overlay-mark-word-unknown ()
   "Mark current word unknown."
@@ -329,8 +315,7 @@ depending on reliablity."
   (websocket-bridge-call-word "mark_word_unknown")
   (when dictionary-overlay-auto-jump-after-mark-word
     (dictionary-overlay-jump-next-unknown-word))
-  (when dictionary-overlay-refresh-buffer-after-mark-word
-    (dictionary-overlay-refresh-buffer)))
+  (dictionary-overlay-refresh-buffer))
 
 (defun dictionary-overlay-mark-word-smart ()
   "Smartly mark current word as known or unknown.
