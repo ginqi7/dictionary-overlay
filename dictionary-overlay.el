@@ -169,11 +169,15 @@ of such packages."
   :group 'dictionary-overlay
   :type '(boolean))
 
-(defcustom dictionary-overlay-auto-jump-after-mark-word nil
-  "Auto jump to next unknown word after marking word.
-Usually, to the next unknown word."
+(defcustom dictionary-overlay-auto-jump-after '()
+  "Auto jump to next unknown word.
+Main purpose of auto jump is to keep cursor stay within overlay
+to facilitate the usage of keymap. For MARK-WORD, usually jump to the
+next unknown word, but depends. For REFRESH-BUFFER, if current cursor is
+within overlay, do nothing; otherwise move to next overlay."
   :group 'dictionary-overlay
-  :type '(boolean))
+  :type '(repeat (choice (const mark-word :tags "after mark word")
+                         (const refresh-buffer :tags "after refresh buffer"))))
 
 (defvar-local dictionary-overlay-jump-direction 'next
   "Direction to jump word.")
@@ -301,21 +305,23 @@ depending on reliablity."
   "Mark current word known."
   (interactive)
   (websocket-bridge-call-word "mark_word_known")
-  (when dictionary-overlay-auto-jump-after-mark-word
+  (when (member 'mark-word dictionary-overlay-auto-jump-after)
     (pcase dictionary-overlay-jump-direction
-      (`next
-       (dictionary-overlay-jump-next-unknown-word))
-      (`prev
-       (dictionary-overlay-jump-prev-unknown-word))))
-  (dictionary-overlay-refresh-buffer))
+      (`next (dictionary-overlay-jump-next-unknown-word))
+      (`prev (dictionary-overlay-jump-prev-unknown-word))))
+  (when (member 'refresh-buffer dictionary-overlay-auto-jump-after)
+    (dictionary-overlay-refresh-buffer)))
 
 (defun dictionary-overlay-mark-word-unknown ()
   "Mark current word unknown."
   (interactive)
   (websocket-bridge-call-word "mark_word_unknown")
-  (when dictionary-overlay-auto-jump-after-mark-word
-    (dictionary-overlay-jump-next-unknown-word))
-  (dictionary-overlay-refresh-buffer))
+  (when (member 'mark-word dictionary-overlay-auto-jump-after)
+    (pcase dictionary-overlay-jump-direction
+      (`next (dictionary-overlay-jump-next-unknown-word))
+      (`prev (dictionary-overlay-jump-prev-unknown-word))))
+  (when (member 'refresh-buffer dictionary-overlay-auto-jump-after)
+    (dictionary-overlay-refresh-buffer)))
 
 (defun dictionary-overlay-mark-word-smart ()
   "Smartly mark current word as known or unknown.
