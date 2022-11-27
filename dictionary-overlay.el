@@ -40,6 +40,10 @@
 ;;    Jump to next unknown word.
 ;;  `dictionary-overlay-jump-prev-unknown-word'
 ;;    Jump to prev unknown word.
+;;  `dictionary-overlay-jump-first-unknown-word'
+;;    Jump to first unknown word.
+;;  `dictionary-overlay-jump-last-unknown-word'
+;;    Jump to last unknown word.
 ;;  `dictionary-overlay-mark-word-known'
 ;;    Mark current word known.
 ;;  `dictionary-overlay-mark-word-unknown'
@@ -193,22 +197,14 @@ within overlay, do nothing; otherwise move to next overlay."
 (defvar dictionary-overlay-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "r") #'dictionary-overlay-refresh-buffer)
-    (define-key map
-                (kbd "p")
-                #'dictionary-overlay-jump-prev-unknown-word)
-    (define-key map
-                (kbd "n")
-                #'dictionary-overlay-jump-next-unknown-word)
+    (define-key map (kbd "p") #'dictionary-overlay-jump-prev-unknown-word)
+    (define-key map (kbd "n") #'dictionary-overlay-jump-next-unknown-word)
+    (define-key map (kbd "<") #'dictionary-overlay-jump-first-unknown-word)
+    (define-key map (kbd ">") #'dictionary-overlay-jump-last-unknown-word)
     (define-key map (kbd "m") #'dictionary-overlay-mark-word-smart)
-    (define-key map
-                (kbd "M")
-                #'dictionary-overlay-mark-word-smart-reversely)
-    (define-key map
-                (kbd "c")
-                #'dictionary-overlay-modify-translation)
-    (define-key map
-                (kbd "<escape>")
-                #'dictionary-overlay-jump-out-of-overlay)
+    (define-key map (kbd "M") #'dictionary-overlay-mark-word-smart-reversely)
+    (define-key map (kbd "c") #'dictionary-overlay-modify-translation)
+    (define-key map (kbd "<escape>") #'dictionary-overlay-jump-out-of-overlay)
     map)
   "Keymap automatically activated inside overlays.
 You can re-bind the commands to any keys you prefer.")
@@ -303,6 +299,22 @@ You can re-bind the commands to any keys you prefer.")
   (setq-local dictionary-overlay-jump-direction 'prev)
   (when dictonary-overlay-recenter-after-mark-and-jump
     (recenter)))
+
+(defun dictionary-overlay-jump-first-unknown-word ()
+  "Jump to first unknown word."
+  (interactive)
+  (goto-char
+   (string-to-number
+    (car (string-split
+          (car (last dictionary-overlay-hash-table-keys)) ":" t)))))
+
+(defun dictionary-overlay-jump-last-unknown-word ()
+  "Jump to last unknown word."
+  (interactive)
+  (goto-char
+   (string-to-number
+    (car (string-split
+          (car dictionary-overlay-hash-table-keys) ":" t)))))
 
 (defun dictionary-overlay-jump-out-of-overlay ()
   "Jump out overlay so that we no longer in keymap.
