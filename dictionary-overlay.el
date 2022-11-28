@@ -478,5 +478,10 @@ Based on value of `dictionary-overlay-just-unknown-words'"
                            translation))
   (dictionary-overlay-render-buffer))
 
+(defun dictionary-overlay-log-buffer ()
+  "Open buffer for backlog."
+  (interactive)
+  (websocket-bridge-app-open-buffer 'dictionary-overlay))
+
 (provide 'dictionary-overlay)
 ;;; dictionary-overlay.el ends here
