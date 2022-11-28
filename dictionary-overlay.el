@@ -32,6 +32,8 @@
 ;;    Stop dictionary-overlay.
 ;;  `dictionary-overlay-restart'
 ;;    Restart dictionary-overlay and show process.
+;;  `dictionary-overlay-log-buffer'
+;;    Open log buffer if exists.
 ;;  `dictionary-overlay-render-buffer'
 ;;    Render current buffer.
 ;;  `dictionary-overlay-toggle'
