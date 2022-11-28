@@ -182,7 +182,7 @@ of such packages."
 Main purpose of auto jump is to keep cursor stay within overlay
 to facilitate the usage of keymap. For MARK-WORD-(UN)KNOWN,
 usually jump to the next unknown word, but depends on direction
-set by 'dictionary-overlay-jump-direction'. For RENDER-BUFFER, if
+set by `dictionary-overlay-jump-direction'. For RENDER-BUFFER, if
 current cursor is within overlay, do nothing; otherwise move to
 next overlay."
   :group 'dictionary-overlay
@@ -257,7 +257,9 @@ You can re-bind the commands to any keys you prefer.")
   "Render current buffer."
   (interactive)
   (when (not (member "dictionary-overlay" websocket-bridge-app-list))
-    (dictionary-overlay-start))
+    (dictionary-overlay-start)
+    ;; wait 1 sec for "dictionary-overlay.py" to finish loading
+    (sit-for 1))
   (setq-local dictionary-overlay-active-p t)
   (dictionary-overlay-refresh-buffer)
   (when (member 'render-buffer dictionary-overlay-auto-jump-after)
