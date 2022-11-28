@@ -226,12 +226,7 @@ You can re-bind the commands to any keys you prefer.")
   "Restart dictionary-overlay."
   (interactive)
   (dictionary-overlay-stop)
-  (dictionary-overlay-start)
-  ;; REVIEW: really need bring this buffer to front? or we place it at bottom?
-  ;; (split-window-below -10)
-  ;; (other-window 1)
-  ;; (websocket-bridge-app-open-buffer "dictionary-overlay")
-  )
+  (dictionary-overlay-start))
 
 (defun websocket-bridge-call-buffer (func-name)
   "Call grammarly function on current buffer by FUNC-NAME."
@@ -481,6 +476,8 @@ Based on value of `dictionary-overlay-just-unknown-words'"
 (defun dictionary-overlay-log-buffer ()
   "Open buffer for backlog."
   (interactive)
+  (split-window-below)
+  (other-window 1)
   (websocket-bridge-app-open-buffer 'dictionary-overlay))
 
 (provide 'dictionary-overlay)
