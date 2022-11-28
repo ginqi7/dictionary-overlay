@@ -74,6 +74,7 @@
 ;;    default = t
 ;;  `dictionary-overlay-auto-jump-after'
 ;;    Auto jump after commands
+;;    Options: 'mark-word-known, 'mark-word-unknown, 'render-buffer
 ;;    default = '()
 ;;  `dictionary-overlay-inhibit-keymap'
 ;;    If t, show overlay for words in unknownwords list.
@@ -179,12 +180,18 @@ of such packages."
 (defcustom dictionary-overlay-auto-jump-after '()
   "Auto jump to next unknown word.
 Main purpose of auto jump is to keep cursor stay within overlay
-to facilitate the usage of keymap. For MARK-WORD, usually jump to the
-next unknown word, but depends. For REFRESH-BUFFER, if current cursor is
-within overlay, do nothing; otherwise move to next overlay."
+to facilitate the usage of keymap. For MARK-WORD-(UN)KNOWN,
+usually jump to the next unknown word, but depends on direction
+set by 'dictionary-overlay-jump-direction'. For RENDER-BUFFER, if
+current cursor is within overlay, do nothing; otherwise move to
+next overlay."
   :group 'dictionary-overlay
-  :type '(repeat (choice (const mark-word :tags "after mark word")
-                         (const refresh-buffer :tags "after refresh buffer"))))
+  :type '(repeat
+          (choice
+           (const :tag "Don't jump" nil)
+           (const :tag "After mark word known" mark-word-known)
+           (const :tag "After mark word unknown" mark-word-unknown)
+           (const :tag "After refresh buffer" render-buffer))))
 
 (defvar-local dictionary-overlay-jump-direction 'next
   "Direction to jump word.")
@@ -252,7 +259,9 @@ You can re-bind the commands to any keys you prefer.")
   (when (not (member "dictionary-overlay" websocket-bridge-app-list))
     (dictionary-overlay-start))
   (setq-local dictionary-overlay-active-p t)
-  (dictionary-overlay-refresh-buffer))
+  (dictionary-overlay-refresh-buffer)
+  (when (member 'render-buffer dictionary-overlay-auto-jump-after)
+    (dictionary-overlay-jump-next-unknown-word)))
 
 (defun dictionary-overlay-toggle ()
   "Toggle current buffer."
@@ -280,9 +289,7 @@ You can re-bind the commands to any keys you prefer.")
   (when dictionary-overlay-active-p
     (progn
       (setq-local dictionary-overlay-hash-table-keys '())
-      (websocket-bridge-call-buffer "render")
-      (when (member 'refresh-buffer dictionary-overlay-auto-jump-after)
-        (dictionary-overlay-jump-next-unknown-word)))))
+      (websocket-bridge-call-buffer "render"))))
 
 (defun dictionary-overlay-jump-next-unknown-word ()
   "Jump to next unknown word."
@@ -329,12 +336,11 @@ depending on reliablity."
   "Mark current word known."
   (interactive)
   (websocket-bridge-call-word "mark_word_known")
-  (when (member 'mark-word dictionary-overlay-auto-jump-after)
+  (when (member 'mark-word-known dictionary-overlay-auto-jump-after)
     (pcase dictionary-overlay-jump-direction
       (`next (dictionary-overlay-jump-next-unknown-word))
       (`prev (dictionary-overlay-jump-prev-unknown-word))))
-  (when (member 'refresh-buffer dictionary-overlay-auto-jump-after)
-    (dictionary-overlay-refresh-buffer))
+  (dictionary-overlay-refresh-buffer)
   (when dictonary-overlay-recenter-after-mark-and-jump
     (recenter)))
 
@@ -342,12 +348,11 @@ depending on reliablity."
   "Mark current word unknown."
   (interactive)
   (websocket-bridge-call-word "mark_word_unknown")
-  (when (member 'mark-word dictionary-overlay-auto-jump-after)
+  (when (member 'mark-word-unknown dictionary-overlay-auto-jump-after)
     (pcase dictionary-overlay-jump-direction
       (`next (dictionary-overlay-jump-next-unknown-word))
       (`prev (dictionary-overlay-jump-prev-unknown-word))))
-  (when (member 'refresh-buffer dictionary-overlay-auto-jump-after)
-    (dictionary-overlay-refresh-buffer))
+  (dictionary-overlay-refresh-buffer)
   (when dictonary-overlay-recenter-after-mark-and-jump
     (recenter)))
 
