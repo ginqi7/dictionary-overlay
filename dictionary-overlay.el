@@ -203,7 +203,7 @@ next overlay."
   :group 'dictionary-overlay
   :type '(boolean))
 
-(defcustom dictionary-overlay-lookup-with dictionary-lookup-definition
+(defcustom dictionary-overlay-lookup-with 'dictionary-lookup-definition
   "Look up word with fn."
   :group 'dictionary-overlay
   :type '(function))
