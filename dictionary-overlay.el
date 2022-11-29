@@ -58,6 +58,8 @@
 ;;    Mark all words as known, except those in `unknownwords' list.
 ;;  `dictionary-overlay-mark-buffer-unknown'
 ;;    Mark all words as unknown, except those in `unknownwords' list.
+;;  `dictionary-overlay-lookup'
+;;    Look up word at cursor
 ;;  `dictionary-overlay-install'
 ;;    Install all python dependencies.
 ;;  `dictionary-overlay-install-google-translate'
@@ -201,6 +203,11 @@ next overlay."
   :group 'dictionary-overlay
   :type '(boolean))
 
+(defcustom dictionary-overlay-lookup-with dictionary-lookup-definition
+  "Look up word with fn."
+  :group 'dictionary-overlay
+  :type '(function))
+
 (defvar dictionary-overlay-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "r") #'dictionary-overlay-refresh-buffer)
@@ -210,6 +217,7 @@ next overlay."
     (define-key map (kbd ">") #'dictionary-overlay-jump-last-unknown-word)
     (define-key map (kbd "m") #'dictionary-overlay-mark-word-smart)
     (define-key map (kbd "M") #'dictionary-overlay-mark-word-smart-reversely)
+    (define-key map (kbd "d") #'dictionary-overlay-lookup)
     (define-key map (kbd "c") #'dictionary-overlay-modify-translation)
     (define-key map (kbd "<escape>") #'dictionary-overlay-jump-out-of-overlay)
     map)
@@ -390,6 +398,14 @@ Based on value of `dictionary-overlay-just-unknown-words'"
          "Mark all as UNKNOWN, EXCEPT those in unknownwords list?")
     (websocket-bridge-call-buffer "mark_buffer_unknown")
     (dictionary-overlay-refresh-buffer)))
+
+(defun dictionary-overlay-lookup ()
+  "Look up word.
+NOTE: third party dictionaries have their own implemention of
+getting words. Probably the word will be the same as the one
+dictionary-overlay gets."
+  (interactive)
+  (funcall dictionary-overlay-lookup-with))
 
 (defun dictionary-add-overlay-from (begin end source target)
   "Add a overlay with range BEGIN to END for the translation SOURCE to TARGET."
