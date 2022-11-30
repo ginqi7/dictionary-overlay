@@ -90,7 +90,8 @@ async def on_message(message):
     cmd = info[1][0].strip()
     if cmd == "render":
         sentence = info[1][1]
-        await render(sentence)
+        buffer_name = info[1][3]
+        await render(sentence, buffer_name)
         await run_and_log("(dictionary-overlay-refresh-overlays)")
     elif cmd == "jump_next_unknown_word":
         sentence = info[1][1]
@@ -240,7 +241,7 @@ async def translate(word: str):
     else:
         return await web_translate(word)
 
-async def render(message):
+async def render(message, buffer_name):
     try:
         tokens = await parse(message)
         for token in tokens:
@@ -256,20 +257,18 @@ async def render(message):
             if chinese == "%s" or chinese == "":
                 # if find nothing, don't run render function in emacs.
                 return
-            await render_word(token, chinese)
+            await render_word(token, chinese, buffer_name)
     except Exception as e:
         msg = "[Dictionary-overlay]Render buffer error. Run (websocket-bridge-app-open-buffer 'dictionary-overlay) see the error details"
         await bridge.message_to_emacs(msg)
         print(e)
 
 
-async def render_word(token, chinese):
+async def render_word(token, chinese, buffer_name):
     word = token[0]
     begin = token[1][0] + 1
     end = token[1][1] + 1
-    cmd = '(dictionary-add-overlay-from {begin} {end} "{word}" "{target}")'.format(
-        begin=begin, end=end, word=word, target=chinese
-    )
+    cmd = f'(dictionary-add-overlay-from {begin} {end} "{word}" "{chinese}" "{buffer_name}")'
     await run_and_log(cmd)
 
 

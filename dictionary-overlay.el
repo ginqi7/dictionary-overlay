@@ -126,8 +126,7 @@
 (defvar-local dictionary-overlay-active-p nil
   "Check current buffer if active dictionary-overlay.")
 
-(defvar-local dictionary-overlay-hash-table
-    (make-hash-table :test 'equal)
+(defvar-local dictionary-overlay-hash-table nil
   "Hash-table contains overlays for dictionary-overlay.
 The key's format is begin:end:word:translation.")
 
@@ -252,7 +251,8 @@ You can re-bind the commands to any keys you prefer.")
   "Call grammarly function on current buffer by FUNC-NAME."
   (websocket-bridge-call "dictionary-overlay" func-name
                          (buffer-string)
-                         (point)))
+                         (point)
+                         (buffer-name)))
 
 (defun websocket-bridge-call-word (func-name)
   "Call grammarly function on current word by FUNC-NAME."
@@ -295,9 +295,11 @@ You can re-bind the commands to any keys you prefer.")
   "Refresh current buffer."
   (interactive)
   (when dictionary-overlay-active-p
-    (progn
-      (setq-local dictionary-overlay-hash-table-keys '())
-      (websocket-bridge-call-buffer "render"))))
+    (when (not dictionary-overlay-hash-table)
+      (setq-local dictionary-overlay-hash-table (make-hash-table :test 'equal)))
+    (setq-local dictionary-overlay-hash-table-keys '())
+    (websocket-bridge-call-buffer "render")
+    ))
 
 (defun dictionary-overlay-jump-next-unknown-word ()
   "Jump to next unknown word."
@@ -407,32 +409,36 @@ dictionary-overlay gets."
   (interactive)
   (funcall dictionary-overlay-lookup-with))
 
-(defun dictionary-add-overlay-from (begin end source target)
-  "Add a overlay with range BEGIN to END for the translation SOURCE to TARGET."
-  (let ((ov (make-overlay begin end))
-        (hash-table-key
-         (format "%s:%s:%s:%s" begin end source target)))
-    ;; record the overlay's key
-    (add-to-list 'dictionary-overlay-hash-table-keys hash-table-key)
-    (when (not (gethash hash-table-key dictionary-overlay-hash-table))
-      ;; create an overly only when the key not exists
-      (overlay-put ov 'face 'dictionary-overlay-unknownword)
-      (pcase dictionary-overlay-position
-        ('after
-         (progn
-           (overlay-put
-            ov 'after-string
-            (propertize
-             (format dictionary-overlay-translation-format target)
-             'face 'dictionary-overlay-translation))
-           (overlay-put ov 'evaporate t)
-           (unless dictionary-overlay-inhibit-keymap
-             (overlay-put ov 'keymap dictionary-overlay-map))))
-        ('help-echo
-         (overlay-put
-          ov 'help-echo
-          (format dictionary-overlay-translation-format target))))
-      (puthash hash-table-key ov dictionary-overlay-hash-table))))
+(defun dictionary-add-overlay-from (begin end source target buffer-name)
+  "Add a overlay with range BEGIN to END for the translation SOURCE to TARGET in BUFFER-NAME."
+  (when (get-buffer buffer-name)
+    (with-current-buffer buffer-name
+      (let ((ov (make-overlay begin end (get-buffer buffer-name)))
+            (hash-table-key
+             (format "%s:%s:%s:%s" begin end source target)))
+        ;; record the overlay's key
+        (add-to-list 'dictionary-overlay-hash-table-keys hash-table-key)
+        (when (not (gethash hash-table-key dictionary-overlay-hash-table))
+          ;; create an overly only when the key not exists
+          (overlay-put ov 'face 'dictionary-overlay-unknownword)
+          (pcase dictionary-overlay-position
+            ('after
+             (progn
+               (overlay-put
+                ov 'after-string
+                (propertize
+                 (format dictionary-overlay-translation-format target)
+                 'face 'dictionary-overlay-translation))
+               (overlay-put ov 'evaporate t)
+               (unless dictionary-overlay-inhibit-keymap
+                 (overlay-put ov 'keymap dictionary-overlay-map))))
+            ('help-echo
+             (overlay-put
+              ov 'help-echo
+              (format dictionary-overlay-translation-format target))))
+          (puthash hash-table-key ov dictionary-overlay-hash-table)))
+      )
+    ))
 
 (defun dictionary-overlay-install ()
   "Install all python dependencies."
