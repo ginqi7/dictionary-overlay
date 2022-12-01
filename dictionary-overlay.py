@@ -131,10 +131,7 @@ async def modify_translation(word: str):
     # add word translation on local dictionary.
     all_translations.append(dictionary.get(word))
     # add word all translations on local sdcv dictionary
-    all_translations.extend(extract_translations(sdcv_dictionary.get(word)))
-    # add word stem all translations on local sdcv dictionary
-    all_translations.extend(extract_translations(\
-        sdcv_dictionary.get(snowball_stemmer.stemWord(word))))
+    all_translations.extend(sdcv_translate(word))
     # add word web stranslation
     result = await web_translate(word)
     all_translations.append(result)
@@ -221,15 +218,21 @@ async def web_translate(word: str) -> str:
 def extract_translations(msg:str):
     '''extract translations by regex'''
     re_chinese_words = re.compile("[\u4e00-\u9fa5]+")
-    return re.findall(re_chinese_words, msg);
+    return re.findall(re_chinese_words, msg)
+
+def sdcv_translate(word:str):
+    '''translate word and stem by sdcv'''
+    stem = snowball_stemmer.stemWord(word)
+    translations = extract_translations(sdcv_dictionary.get(word))
+    translations.extend(extract_translations(sdcv_dictionary.get(stem)))
+    return translations
 
 async def translate(word: str):
-    ''' translate word.'''
-    if word in sdcv_dictionary:
-        # default show the first translation in sdcv dictionary
-        translations = extract_translations(sdcv_dictionary.get(word))
-        if translations:
-            return translations[0]
+    '''translate word.'''
+    # default show the first translation in sdcv dictionary
+    translations = sdcv_translate(word)
+    if translations:
+        return translations[0]
     return await web_translate(word)
 
 async def render(message, buffer_name):
