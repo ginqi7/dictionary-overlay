@@ -116,16 +116,16 @@ face `dictionary-overlay-unknownword` 如果用户不自行定义，那么不会
 * 快捷键
 当 ~(setq dictionary-overlay-inihibit-keymap nil)~ 可以使用若干自带的快捷键，当point 在一个生词的overlay 之上时，可以：
 
-| (kbd "d")        | dictionary-overlay-lookup                    | 查当前词                                     |
-| (kbd "r")        | dictionary-overlay-refresh-buffer            | 刷新buffer                                  |
-| (kbd "p")        | dictionary-overlay-jump-prev-unknown-word    | 跳转到上一个生词                             |
-| (kbd "n")        | dictionary-overlay-jump-next-unknown-word    | 跳转到下一个生词                             |
-| (kbd "p")        | dictionary-overlay-jump-first-unknown-word   | 跳转到第一个生词                             |
-| (kbd "n")        | dictionary-overlay-jump-last-unknown-word    | 跳转到最后一个生词                           |
-| (kbd "m")        | dictionary-overlay-mark-word-smart           | 透析模式，把单词标记为“熟词”                 |
-| (kbd "M")        | dictionary-overlay-mark-word-smart-reversely | 生词本模式，把单词标记为“熟词”               |
-| (kbd "c")        | dictionary-overlay-modify-translation        | 修改翻译                                  |
-| (kbd "<escape>") | dictionary-overlay-jump-out-of-overlay       | 跳出overlay 让快捷键在非overlay 词语中失效。 |
+| d        | dictionary-overlay-lookup                    | 查当前词                                      |
+| r        | dictionary-overlay-refresh-buffer            | 刷新buffer                                   |
+| p        | dictionary-overlay-jump-prev-unknown-word    | 跳转到上一个生词                              |
+| n        | dictionary-overlay-jump-next-unknown-word    | 跳转到下一个生词                              |
+| <        | dictionary-overlay-jump-first-unknown-word   | 跳转到第一个生词                              |
+| >        | dictionary-overlay-jump-last-unknown-word    | 跳转到最后一个生词                            |
+| m        | dictionary-overlay-mark-word-smart           | 透析模式，把单词标记为“熟词”                   |
+| M        | dictionary-overlay-mark-word-smart-reversely | 生词本模式，把单词标记为“熟词”                 |
+| c        | dictionary-overlay-modify-translation        | 修改翻译                                      |
+| <escape> | dictionary-overlay-jump-out-of-overlay       | 跳出overlay 让快捷键在非overlay 词语中失效。 |
 
 快捷键只在标记为生词的overlay 上生效，因此 ~dictionary-overlay-mark-word-unknown~ 还需要自行绑定需要的快捷键
 
@@ -139,7 +139,7 @@ face `dictionary-overlay-unknownword` 如果用户不自行定义，那么不会
 
 当一个生词反复出现，你觉得自己已经认识了它，可以标记为 known （ ~dictionary-overlay-mark-word-known~ ），下次不再展示翻译。
 
-当你阅读了足够多的文章，你应该积累了一定量的 known-words ，此时，或许你可以尝试使用"透析阅读法"（ ~(setq dictionary-overlay-just-unknown-words nil)~ ）将自动展示，“或许”你不认识的单词。
+当你阅读了足够多的文章，你应该积累了一定量的 known-words ，此时，或许你可以尝试使用析阅读法"（ ~(setq dictionary-overlay-just-unknown-words nil)~ ）将自动展示，“或许”你不认识的单词。
 
 如果喜欢最小的视觉干扰，可以通过 (setq dictionary-overlay-position 'help-echo) 把翻译位置设置在 help-echo 里，只有鼠标通过时才显示释义。注意：目前支持的释义仍过于简单，并不推荐使用此法，同时由于默认无face，推荐设置前述 (copy-face 'font-lock-keyword-face 'dictionary-overlay-unknownword)。
 
