@@ -42,7 +42,7 @@ async def parse(sentence: str):
 def new_word_p(word: str) -> bool:
     if len(word) < 3:
         return False
-    if re.match(r"[^a-z]", word, re.M | re.I):
+    if re.search(r"[^a-z]", word, re.M | re.I):
         return False
     return not in_or_stem_in(word, known_words)
 
@@ -276,7 +276,7 @@ async def main():
     await asyncio.gather(init(), bridge.start())
 
 async def init():
-    global dictionary_file_path, knownwords_file_path, unknownwords_file_path, known_words, unknown_words, crow_engine
+    global dictionary_file_path, knownwords_file_path, unknownwords_file_path, known_words, unknown_words, crow_engine, dictionary
     crow_engine = await bridge.get_emacs_var("dictionary-overlay-crow-engine")
     crow_engine = crow_engine.strip('"')
     user_data_directory = await bridge.get_emacs_var("dictionary-overlay-user-data-directory")
