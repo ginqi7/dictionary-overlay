@@ -19,8 +19,9 @@
 - [[https://github.com/jd-boyd/sexpdata][sexpdata]] 用于把 python 对象转换为 sexp
 - [[https://pypi.org/project/snowballstemmer/][snowballstemmer]] 用于“词干提取”的算法包
 - [[https://git.ookami.one/cgit/google-translate/][google-translate]] 用于网络翻译，非必选，可以用 crow-translate 替换
+    - [[https://pyobjc.readthedocs.io/en/latest/][pyobjc]] 非必选，MacOS 用户想要使用系统词典时，需要安装
 
-你可以使用 ~dictionary-overlay-install~ 来安装相关的 python 包（不包括 google-translate）。
+你可以使用 ~dictionary-overlay-install~ 来安装相关的 python 包（不包括 google-translate 和 pyobjc）。
 
 ** 网络翻译
 默认会使用 sdcv 本地词典翻译。当单词在本地词典未找到时，会使用网络翻译，目前支持：
@@ -66,15 +67,16 @@ git clone --depth=1 -b main https://github.com/ginqi7/dictionary-overlay ~/.emac
 
 * 选项
 
-| 选项                                               | 说明                                                          |
-|---------------------------------------------------+---------------------------------------------------------------|
-| dictionary-overlay-just-unknown-words             | t 时使用“生词本”模式，nil 为“透析阅读”模式，默认为 t                |
-| dictionary-overlay-user-data-directory            | 用户数据存放 目录，默认值为：“~/.emacs.d/dictionary-overlay-data” |
-| dictionary-overlay-position                       | 显示翻译的位置：词后，help-echo, 默认在词后                       |
-| dictionary-overlay-lookup-with                    | 查词词典设置：默认系统词典。可自定义第三方包，比如 youdao-dictionary, popweb |
-| dictionary-overlay-inihibit-keymap                | t 时关闭 keymap, 默认为 nil                                    |
-| dictionary-overlay-auto-jump-after                | 可选项：标为生词 mark-word-known, 标为熟词 mark-word-unknwon, 刷新 render-buffer |
-| dictionary-overlay-translation-format             | 翻译展示的形式，默认是："(%s)"                                   |
+| 选项                                   | 说明                                                                                                                                                                                                               |
+|----------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| dictionary-overlay-just-unknown-words  | t 时使用“生词本”模式，nil 为“透析阅读”模式，默认为 t                                                                                                                                                               |
+| dictionary-overlay-user-data-directory | 用户数据存放 目录，默认值为：“~/.emacs.d/dictionary-overlay-data”                                                                                                                                                  |
+| dictionary-overlay-position            | 显示翻译的位置：词后，help-echo, 默认在词后                                                                                                                                                                        |
+| dictionary-overlay-lookup-with         | 查词词典设置：默认系统词典。可自定义第三方包，比如 youdao-dictionary, popweb                                                                                                                                       |
+| dictionary-overlay-inihibit-keymap     | t 时关闭 keymap, 默认为 nil                                                                                                                                                                                        |
+| dictionary-overlay-auto-jump-after     | 可选项：标为生词 mark-word-known, 标为熟词 mark-word-unknwon, 刷新 render-buffer                                                                                                                                   |
+| dictionary-overlay-translation-format  | 翻译展示的形式，默认是："(%s)"                                                                                                                                                                                     |
+| dictionary-overlay-translators         | 指定使用的翻译引擎以及使用顺序。默认包含'("local" "sdcv" "darwin" "web") 分别表示，本地dictionary.json  文件，内置的sdcv 词典，  MacOs 系统词典，以及web 翻译，你可以选择使用的词典以及顺序。 |
 
 
 

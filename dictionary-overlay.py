@@ -4,6 +4,7 @@ import json
 import os
 import re
 import shutil
+from sys import platform
 from threading import Timer
 
 import snowballstemmer
@@ -24,11 +25,14 @@ sdcv_dictionary = Dictionary(sdcv_dictionary_path, in_memory=True)
 tokenizer = Tokenizer(BPE())
 pre_tokenizer = Whitespace()
 dictionary = {}
+translators = []
 
 def in_or_stem_in(word:str, words) -> bool:
+    '''Check a word or word stem in the word list'''
     return word in words or snowball_stemmer.stemWord(word) in words
 
 async def parse(sentence: str):
+    '''parse the sentence'''
     only_unknown_words = await bridge.get_emacs_var(
         "dictionary-overlay-just-unknown-words"
     )
@@ -126,17 +130,14 @@ async def on_message(message):
         print(f"not fount handler for {cmd}", flush=True)
 
 async def modify_translation(word: str):
+    "let the user to modify default translation"
     all_translations = []
-    # add all translations to make user select.
-    # add word translation on local dictionary.
-    all_translations.append(dictionary.get(word))
-    # add word all translations on local sdcv dictionary
-    all_translations.extend(sdcv_translate(word))
-    # add word web stranslation
-    result = await web_translate(word)
-    all_translations.append(result)
+    for translator in translators:
+        translations = await translate_by_translator(word, translator)
+        all_translations.extend(translations)
     # remove duplicative translations
-    all_translations = list(set(all_translations))
+    # dict.fromkeys doesn't lose ordering. It's slower than list(set(items)) (takes 50-100% longer typically), but much faster than any other order-preserving solution
+    all_translations = list(dict.fromkeys(all_translations))
     sexp = dumps(all_translations)
     cmd = f'(dictionary-overlay-choose-translate "{word}" \'{sexp})'
     await run_and_log(cmd)
@@ -181,59 +182,76 @@ async def jump_next_unknown_word(sentence: str, point: int):
     for token in tokens:
         begin = token[1][0] + 1
         if point < begin:
-            cmd = "(goto-char {begin})".format(begin=begin)
+            cmd = f"(goto-char {begin})"
             await run_and_log(cmd)
             break
 
 async def jump_prev_unknown_word(sentence: str, point: int):
     tokens = await parse(sentence)
-    # todo: write this with build-in 'any' function
     for token in reversed(tokens):
         begin = token[1][0] + 1
         if point > begin:
-            cmd = "(goto-char {begin})".format(begin=begin)
+            cmd = f"(goto-char {begin})"
             await run_and_log(cmd)
             break
 
-async def web_translate(word: str) -> str:
+async def web_translate(word: str) -> list:
+    '''translate word by web translator, crow or google'''
     try:
         if shutil.which("crow"):
             result = get_command_result(f'crow -t zh-CN --json -e {crow_engine} "{word}"')
-            return json.loads(result)["translation"]
-        else:
-            import google_translate  # type: ignore
-            result = google_translate.translate(word, dst_lang='zh')
-            return result["trans"][0]
+            return [json.loads(result)["translation"]]
+        import google_translate
+        result = google_translate.translate(word, dst_lang='zh')
+        return result["trans"]
     except ImportError:
         msg= f"[Dictionary-overlay]you do not have a network dictionary installed and the queried word [\"{word}\"] is not in the local dictionary, please install crow-translate or google-translate"
         print(msg)
         await bridge.message_to_emacs(msg)
-        return ""
+        return []
     except Exception as e:
         print (e)
         msg = "[Dictionary-overlay]web-translate error, check your network. or run (websocket-bridge-app-open-buffer 'dictionary-overlay) see the error details."
         await bridge.message_to_emacs(msg)
-        return ""
+        return []
 
-def extract_translations(msg:str):
+def extract_translations(msg:str) -> list:
     '''extract translations by regex'''
     re_chinese_words = re.compile("[\u4e00-\u9fa5]+")
     return re.findall(re_chinese_words, msg)
 
-def sdcv_translate(word:str):
+def sdcv_translate(word:str) -> list:
     '''translate word and stem by sdcv'''
     stem = snowball_stemmer.stemWord(word)
     translations = extract_translations(sdcv_dictionary.get(word))
     translations.extend(extract_translations(sdcv_dictionary.get(stem)))
     return translations
 
-async def translate(word: str):
+def local_translate(word:str) -> list:
+    '''translate word by local dictionary'''
+    translation = dictionary.get(word)
+    return [translation] if translation else []
+
+async def translate_by_translator(word: str, translator: str) -> list:
+    '''translate word by specified translator'''
+    if translator == "local":
+        local_translate(word)
+    if translator == "sdcv":
+        return sdcv_translate(word)
+    if translator == "darwin":
+        return macos_dictionary_translate(word)
+    if translator == "web":
+        return await web_translate(word)
+    return []
+
+async def translate(word: str) -> str:
     '''translate word.'''
-    # default show the first translation in sdcv dictionary
-    translations = sdcv_translate(word)
-    if translations:
-        return translations[0]
-    return await web_translate(word)
+    for translator in translators:
+        translations = await translate_by_translator(word, translator)
+        if translations:
+            dictionary[word] = translations[0]
+            return translations[0]
+    return ""
 
 async def render(message, buffer_name):
     '''call Emacs render message'''
@@ -241,17 +259,10 @@ async def render(message, buffer_name):
         tokens = await parse(message)
         for token in tokens:
             word = token[0].lower()
-            # first try find translation in local dictionary text
-            # dictionary contains last translation
-            chinese = dictionary.get(word, "")
-            if chinese == "":
-                # if first step find nothing, then try find translation on sdcv or web.
-                chinese = await translate(word)
-                dictionary[word] = chinese
-            if chinese == "":
-                # if find nothing, don't run render function in emacs.
-                return
-            await render_word(token, chinese, buffer_name)
+            chinese = await translate(word)
+            if chinese != "":
+                # if find translation, render function in emacs.
+                await render_word(token, chinese, buffer_name)
     except Exception as e:
         msg = "[Dictionary-overlay]Render buffer error. Run (websocket-bridge-app-open-buffer 'dictionary-overlay) see the error details"
         await bridge.message_to_emacs(msg)
@@ -276,9 +287,10 @@ async def main():
     await asyncio.gather(init(), bridge.start())
 
 async def init():
-    global dictionary_file_path, knownwords_file_path, unknownwords_file_path, known_words, unknown_words, crow_engine, dictionary
+    global dictionary_file_path, knownwords_file_path, unknownwords_file_path, known_words, unknown_words, crow_engine, dictionary, translators
     crow_engine = await bridge.get_emacs_var("dictionary-overlay-crow-engine")
     crow_engine = crow_engine.strip('"')
+    translators = json.loads(await bridge.get_emacs_var("dictionary-overlay-translators"))
     user_data_directory = await bridge.get_emacs_var("dictionary-overlay-user-data-directory")
     user_data_directory = os.path.expanduser(user_data_directory.strip('"'))
     dictionary_file_path = os.path.join(user_data_directory, "dictionary.json")
@@ -292,6 +304,7 @@ async def init():
     with open(unknownwords_file_path, "r", encoding="utf-8") as f:  unknown_words= set(f.read().split())
 
 def create_user_data_file_if_not_exist(path: str, content=None):
+    '''create user data file if not exist'''
     if not os.path.exists(path):
         # Build parent directories when file is not exist.
         basedir = os.path.dirname(path)
@@ -303,5 +316,14 @@ def create_user_data_file_if_not_exist(path: str, content=None):
                 f.write(content)
 
         print(f"[dictionary-overlay] auto create user data file {path}")
+
+def macos_dictionary_translate(word: str) -> list:
+    '''using macos dictionary to translate word'''
+    if platform == "darwin":
+        import CoreServices
+        translation_msg = CoreServices.DCSCopyTextDefinition(None, word, (0, len(word)))
+        translation_msg = translation_msg if translation_msg else ""
+        return extract_translations(translation_msg)
+    return []
 
 asyncio.run(main())
