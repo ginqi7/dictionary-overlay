@@ -219,6 +219,7 @@ next overlay."
 
 (defvar dictionary-overlay-map
   (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "d") #'dictionary-overlay-lookup)
     (define-key map (kbd "r") #'dictionary-overlay-refresh-buffer)
     (define-key map (kbd "p") #'dictionary-overlay-jump-prev-unknown-word)
     (define-key map (kbd "n") #'dictionary-overlay-jump-next-unknown-word)
@@ -226,7 +227,6 @@ next overlay."
     (define-key map (kbd ">") #'dictionary-overlay-jump-last-unknown-word)
     (define-key map (kbd "m") #'dictionary-overlay-mark-word-smart)
     (define-key map (kbd "M") #'dictionary-overlay-mark-word-smart-reversely)
-    (define-key map (kbd "d") #'dictionary-overlay-lookup)
     (define-key map (kbd "c") #'dictionary-overlay-modify-translation)
     (define-key map (kbd "<escape>") #'dictionary-overlay-jump-out-of-overlay)
     map)
