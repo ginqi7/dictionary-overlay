@@ -31,11 +31,13 @@
 ;;  `dictionary-overlay-stop'
 ;;    Stop dictionary-overlay.
 ;;  `dictionary-overlay-restart'
-;;    Restart dictionary-overlay and show process.
+;;    Restart dictionary-overlay.
 ;;  `dictionary-overlay-render-buffer'
 ;;    Render current buffer.
 ;;  `dictionary-overlay-toggle'
 ;;    Toggle current buffer.
+;;  `dictionary-overlay-refresh-buffer'
+;;    Refresh current buffer.
 ;;  `dictionary-overlay-jump-next-unknown-word'
 ;;    Jump to next unknown word.
 ;;  `dictionary-overlay-jump-prev-unknown-word'
@@ -44,22 +46,22 @@
 ;;    Jump to first unknown word.
 ;;  `dictionary-overlay-jump-last-unknown-word'
 ;;    Jump to last unknown word.
+;;  `dictionary-overlay-jump-out-of-overlay'
+;;    Jump out overlay so that we no longer in keymap.
 ;;  `dictionary-overlay-mark-word-known'
 ;;    Mark current word known.
 ;;  `dictionary-overlay-mark-word-unknown'
 ;;    Mark current word unknown.
-;;  `dictionary-overlay-jump-out-of-overlay'
-;;    Move cursor out of overlay.
 ;;  `dictionary-overlay-mark-word-smart'
-;;    Smartly mark current word as known or unknow.
+;;    Smartly mark current word as known or unknown.
 ;;  `dictionary-overlay-mark-word-smart-reversely'
-;;    Smartly mark current word as known or unknow, inverse version of the above.
+;;    Smartly mark current word known or unknown smartly, but reversely.
 ;;  `dictionary-overlay-mark-buffer'
 ;;    Mark all words as known, except those in `unknownwords' list.
 ;;  `dictionary-overlay-mark-buffer-unknown'
 ;;    Mark all words as unknown, except those in `unknownwords' list.
 ;;  `dictionary-overlay-lookup'
-;;    Look up word at cursor
+;;    Look up word.
 ;;  `dictionary-overlay-install'
 ;;    Install all python dependencies.
 ;;  `dictionary-overlay-install-google-translate'
@@ -74,29 +76,33 @@
 ;;  `dictionary-overlay-just-unknown-words'
 ;;    If t, show overlay for words in unknownwords list.
 ;;    default = t
-;;  `dictionary-overlay-auto-jump-after'
-;;    Auto jump after commands
-;;    Options: 'mark-word-known, 'mark-word-unknown, 'render-buffer
-;;    default = '()
-;;  `dictionary-overlay-inhibit-keymap'
-;;    If t, show overlay for words in unknownwords list.
-;;    default = t
 ;;  `dictionary-overlay-position'
-;;    If value is 'after, put translation after word
-;;    If value is 'help-echo, show it when mouse over word
+;;    Where to show translation.
 ;;    default = 'after
-;;  `dictonary-overlay-recenter-after-mark-and-jump'
-;;    If t, recenter after mark or jump.
-;;    default is nil
 ;;  `dictionary-overlay-user-data-directory'
 ;;    Place user data in Emacs directory.
 ;;    default = (locate-user-emacs-file "dictionary-overlay-data/")
 ;;  `dictionary-overlay-translation-format'
-;;    Translation format
+;;    Translation format.
 ;;    default = "(%s)"
 ;;  `dictionary-overlay-crow-engine'
-;;    Crow translate engine
+;;    Crow translate engine.
 ;;    default = "google"
+;;  `dictionary-overlay-inhibit-keymap'
+;;    When non-nil, don't use `dictionary-overlay-map'.
+;;    default = nil
+;;  `dictionary-overlay-auto-jump-after'
+;;    Auto jump to next unknown word.
+;;    default = 'nil
+;;  `dictonary-overlay-recenter-after-mark-and-jump'
+;;    Recenter after mark or jump.
+;;    default = nil
+;;  `dictionary-overlay-lookup-with'
+;;    Look up word with fn.
+;;    default = 'dictionary-lookup-definition
+;;  `dictionary-overlay-translators'
+;;    The translators and theirs's order.
+;;    default = '("local" "sdcv" "darwin" "web")
 
 ;;; Code:
 
@@ -206,6 +212,10 @@ next overlay."
   "Look up word with fn."
   :group 'dictionary-overlay
   :type '(function))
+
+(defcustom dictionary-overlay-translators '("local" "sdcv" "darwin" "web")
+  "The translators and theirs's order."
+  :group 'dictionary-overlay)
 
 (defvar dictionary-overlay-map
   (let ((map (make-sparse-keymap)))
