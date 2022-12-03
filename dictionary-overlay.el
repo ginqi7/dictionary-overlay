@@ -289,8 +289,11 @@ You can re-bind the commands to any keys you prefer.")
         ;; reset all hash-table-keys and delete all overlays
         (setq-local dictionary-overlay-hash-table-keys '())
         (dictionary-overlay-refresh-overlays)
-        (setq-local dictionary-overlay-active-p nil))
-    (dictionary-overlay-render-buffer)))
+        (setq-local dictionary-overlay-active-p nil)
+        (message "Dictionary-overlay buffer render deactivated"))
+    (progn
+      (dictionary-overlay-render-buffer)
+      (message "Dictionary-overlay buffer render activated"))))
 
 (defun dictionary-overlay-refresh-overlays ()
   "Refresh overlays: remove overlays and hash-table items when not needed."
