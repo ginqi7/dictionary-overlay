@@ -310,6 +310,19 @@ You can re-bind the commands to any keys you prefer.")
     (setq-local dictionary-overlay-hash-table-keys '())
     (websocket-bridge-call-buffer "render")))
 
+(defun dictionary-overlay-first-unknown-word-pos ()
+  "End of last unknown word pos.
+NOTE: Retrieval of word pos relies on `dictionary-overlay-hash-table-keys',
+so currently won't work for auto jump after render buffer. Same as to
+`dictionary-overlay-last-unknown-word-pos'."
+  (string-to-number
+   (car (string-split
+         (car (last dictionary-overlay-hash-table-keys)) ":"))))
+
+(defun dictionary-overlay-cursor-before-first-unknown-word-p ()
+  "Whether cursor is after word beginning of last unknown word."
+  (<= (point) (dictionary-overlay-first-unknown-word-pos)))
+
 (defun dictionary-overlay-last-unknown-word-pos ()
   "Beginning of last unnow word pos."
   (string-to-number
@@ -319,16 +332,6 @@ You can re-bind the commands to any keys you prefer.")
 (defun dictionary-overlay-cursor-after-last-unknown-word-p ()
   "Whether cursor is after word beginning of last unknown word."
   (>= (point) (dictionary-overlay-last-unknown-word-pos)))
-
-(defun dictionary-overlay-first-unknown-word-pos ()
-  "End of last unnow word pos."
-  (string-to-number
-   (car (string-split
-         (car (last dictionary-overlay-hash-table-keys)) ":"))))
-
-(defun dictionary-overlay-cursor-before-first-unknown-word-p ()
-  "Whether cursor is after word beginning of last unknown word."
-  (<= (point) (dictionary-overlay-first-unknown-word-pos)))
 
 (defun dictionary-overlay-jump-first-unknown-word ()
   "Jump to first unknown word."
