@@ -235,7 +235,7 @@ def local_translate(word:str) -> list:
 async def translate_by_translator(word: str, translator: str) -> list:
     '''translate word by specified translator'''
     if translator == "local":
-        local_translate(word)
+        return local_translate(word)
     if translator == "sdcv":
         return sdcv_translate(word)
     if translator == "darwin":
