@@ -201,7 +201,8 @@ next overlay."
 (defcustom dictionary-overlay-recenter-after-mark-and-jump nil
   "Recenter after mark or jump."
   :group 'dictionary-overlay
-  :type '(boolean))
+  :type '(choice (boolean :tag "Do nothing" nil)
+                 (integer :tag "Recenter to lines" N)))
 
 (defcustom dictionary-overlay-lookup-with 'dictionary-lookup-definition
   "Look up word with fn."
@@ -275,7 +276,7 @@ You can re-bind the commands to any keys you prefer.")
   (setq-local dictionary-overlay-active-p t)
   (dictionary-overlay-refresh-buffer)
   (when (member 'render-buffer dictionary-overlay-auto-jump-after)
-    (dictionary-overlay-jump-next-unknown-word)))
+    (websocket-bridge-call-buffer "jump_next_unknown_word")))
 
 (defun dictionary-overlay-toggle ()
   "Toggle current buffer."
@@ -286,10 +287,10 @@ You can re-bind the commands to any keys you prefer.")
         (setq-local dictionary-overlay-hash-table-keys '())
         (dictionary-overlay-refresh-overlays)
         (setq-local dictionary-overlay-active-p nil)
-        (message "Dictionary-overlay buffer render deactivated"))
+        (message "Dictionary overlay removed."))
     (progn
       (dictionary-overlay-render-buffer)
-      (message "Dictionary-overlay buffer render activated"))))
+      (message "Dictionary overlay rendered."))))
 
 (defun dictionary-overlay-refresh-overlays ()
   "Refresh overlays: remove overlays and hash-table items when not needed."
@@ -309,44 +310,62 @@ You can re-bind the commands to any keys you prefer.")
     (setq-local dictionary-overlay-hash-table-keys '())
     (websocket-bridge-call-buffer "render")))
 
-(defun dictionary-overlay-jump-next-unknown-word ()
-  "Jump to next unknown word."
-  (interactive)
-  (websocket-bridge-call-buffer "jump_next_unknown_word")
-  (setq-local dictionary-overlay-jump-direction 'next)
-  (when dictionary-overlay-recenter-after-mark-and-jump
-    (recenter)))
+(defun dictionary-overlay-last-unknown-word-pos ()
+  "Beginning of last unnow word pos."
+  (string-to-number
+   (car (string-split
+         (car dictionary-overlay-hash-table-keys) ":"))))
 
-(defun dictionary-overlay-jump-prev-unknown-word ()
-  "Jump to prev unknown word."
-  (interactive)
-  (websocket-bridge-call-buffer "jump_prev_unknown_word")
-  (setq-local dictionary-overlay-jump-direction 'prev)
-  (when dictionary-overlay-recenter-after-mark-and-jump
-    (recenter)))
+(defun dictionary-overlay-cursor-after-last-unknown-word-p ()
+  "Whether cursor is after word beginning of last unknown word."
+  (>= (point) (dictionary-overlay-last-unknown-word-pos)))
+
+(defun dictionary-overlay-first-unknown-word-pos ()
+  "End of last unnow word pos."
+  (string-to-number
+   (car (string-split
+         (car (last dictionary-overlay-hash-table-keys)) ":"))))
+
+(defun dictionary-overlay-cursor-before-first-unknown-word-p ()
+  "Whether cursor is after word beginning of last unknown word."
+  (<= (point) (dictionary-overlay-first-unknown-word-pos)))
 
 (defun dictionary-overlay-jump-first-unknown-word ()
   "Jump to first unknown word."
   (interactive)
-  (goto-char
-   (string-to-number
-    (car (string-split
-          (car (last dictionary-overlay-hash-table-keys)) ":" t)))))
+  (goto-char (dictionary-overlay-first-unknown-word-pos)))
 
 (defun dictionary-overlay-jump-last-unknown-word ()
   "Jump to last unknown word."
   (interactive)
-  (goto-char
-   (string-to-number
-    (car (string-split
-          (car dictionary-overlay-hash-table-keys) ":" t)))))
+  (goto-char (dictionary-overlay-last-unknown-word-pos)))
+
+(defun dictionary-overlay-jump-next-unknown-word ()
+  "Jump to next unknown word."
+  (interactive)
+  (if (dictionary-overlay-cursor-after-last-unknown-word-p)
+      (dictionary-overlay-jump-first-unknown-word)
+    (websocket-bridge-call-buffer "jump_next_unknown_word"))
+  (setq-local dictionary-overlay-jump-direction 'next)
+  (when dictionary-overlay-recenter-after-mark-and-jump
+    (recenter dictionary-overlay-recenter-after-mark-and-jump)))
+
+(defun dictionary-overlay-jump-prev-unknown-word ()
+  "Jump to previous unknown word."
+  (interactive)
+  (if (dictionary-overlay-cursor-before-first-unknown-word-p)
+      (dictionary-overlay-jump-last-unknown-word)
+    (websocket-bridge-call-buffer "jump_prev_unknown_word"))
+  (setq-local dictionary-overlay-jump-direction 'prev)
+  (when dictionary-overlay-recenter-after-mark-and-jump
+    (recenter dictionary-overlay-recenter-after-mark-and-jump)))
 
 (defun dictionary-overlay-jump-out-of-overlay ()
   "Jump out overlay so that we no longer in keymap.
-Usually overlay keymap has a higher priority than local major
-mode and minor mode key map. Jumping out of overlay facilitates the
-usage of original keymap. The command name is subjected to change
-depending on reliablity."
+Usually overlay keymap has a higher priority than other major and
+minor mode keymap. Jumping out of overlay facilitates the usage
+of original mode keymap. Since overlay is everywhere, don't expect it
+to work consistently, but usually it does a decent job."
   (interactive)
   (forward-word))
 
@@ -360,7 +379,7 @@ depending on reliablity."
       (`prev (dictionary-overlay-jump-prev-unknown-word))))
   (dictionary-overlay-refresh-buffer)
   (when dictionary-overlay-recenter-after-mark-and-jump
-    (recenter)))
+    (recenter dictionary-overlay-recenter-after-mark-and-jump)))
 
 (defun dictionary-overlay-mark-word-unknown ()
   "Mark current word unknown."
@@ -372,7 +391,7 @@ depending on reliablity."
       (`prev (dictionary-overlay-jump-prev-unknown-word))))
   (dictionary-overlay-refresh-buffer)
   (when dictionary-overlay-recenter-after-mark-and-jump
-    (recenter)))
+    (recenter dictionary-overlay-recenter-after-mark-and-jump)))
 
 (defun dictionary-overlay-mark-word-smart ()
   "Smartly mark current word as known or unknown.
