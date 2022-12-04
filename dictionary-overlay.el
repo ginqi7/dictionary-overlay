@@ -94,7 +94,7 @@
 ;;  `dictionary-overlay-auto-jump-after'
 ;;    Auto jump to next unknown word.
 ;;    default = 'nil
-;;  `dictonary-overlay-recenter-after-mark-and-jump'
+;;  `dictionary-overlay-recenter-after-mark-and-jump'
 ;;    Recenter after mark or jump.
 ;;    default = nil
 ;;  `dictionary-overlay-lookup-with'
@@ -108,8 +108,7 @@
 
 (require 'websocket-bridge)
 
-(defgroup dictionary-overlay
-  ()
+(defgroup dictionary-overlay ()
   "Dictionary overlay for words in buffers."
   :group 'applications)
 
@@ -122,9 +121,8 @@
   :group 'dictionary-overlay)
 
 (defvar dictionary-overlay-py-path
-  (concat
-   (file-name-directory load-file-name)
-   "dictionary-overlay.py"))
+  (concat (file-name-directory load-file-name)
+          "dictionary-overlay.py"))
 
 (defvar dictionary-overlay-py-requirements-path
   (concat (file-name-directory load-file-name) "requirements.txt"))
@@ -136,11 +134,9 @@
   "Hash-table contains overlays for dictionary-overlay.
 The key's format is begin:end:word:translation.")
 
-(defvar-local dictionary-overlay-hash-table-keys
-    '()
+(defvar-local dictionary-overlay-hash-table-keys '()
   "Contains all hashtable-keys for dictionary-overlay.
 The key's format is begin:end:word:translation.")
-
 
 (defcustom dictionary-overlay-just-unknown-words t
   "If t, show overlay for words in unknownwords list.
@@ -163,8 +159,7 @@ If value is \\='help-echo, show it when mouse over word."
   :group 'dictionary-overlay
   :type '(directory))
 
-(defcustom dictionary-overlay-translation-format
-  "(%s)"
+(defcustom dictionary-overlay-translation-format "(%s)"
   "Translation format."
   :group 'dictionary-overlay
   :type '(string))
@@ -189,7 +184,7 @@ of such packages."
 Main purpose of auto jump is to keep cursor stay within overlay
 to facilitate the usage of keymap. For MARK-WORD-(UN)KNOWN,
 usually jump to the next unknown word, but depends on direction
-set by 'dictionary-overlay-jump-direction'. For RENDER-BUFFER, if
+set by `dictionary-overlay-jump-direction'. For RENDER-BUFFER, if
 current cursor is within overlay, do nothing; otherwise move to
 next overlay."
   :group 'dictionary-overlay
@@ -203,7 +198,7 @@ next overlay."
 (defvar-local dictionary-overlay-jump-direction 'next
   "Direction to jump word.")
 
-(defcustom dictonary-overlay-recenter-after-mark-and-jump nil
+(defcustom dictionary-overlay-recenter-after-mark-and-jump nil
   "Recenter after mark or jump."
   :group 'dictionary-overlay
   :type '(boolean))
@@ -215,7 +210,8 @@ next overlay."
 
 (defcustom dictionary-overlay-translators '("local" "sdcv" "darwin" "web")
   "The translators and theirs's order."
-  :group 'dictionary-overlay)
+  :group 'dictionary-overlay
+  :type '(list))
 
 (defvar dictionary-overlay-map
   (let ((map (make-sparse-keymap)))
@@ -311,15 +307,14 @@ You can re-bind the commands to any keys you prefer.")
     (when (not dictionary-overlay-hash-table)
       (setq-local dictionary-overlay-hash-table (make-hash-table :test 'equal)))
     (setq-local dictionary-overlay-hash-table-keys '())
-    (websocket-bridge-call-buffer "render")
-    ))
+    (websocket-bridge-call-buffer "render")))
 
 (defun dictionary-overlay-jump-next-unknown-word ()
   "Jump to next unknown word."
   (interactive)
   (websocket-bridge-call-buffer "jump_next_unknown_word")
   (setq-local dictionary-overlay-jump-direction 'next)
-  (when dictonary-overlay-recenter-after-mark-and-jump
+  (when dictionary-overlay-recenter-after-mark-and-jump
     (recenter)))
 
 (defun dictionary-overlay-jump-prev-unknown-word ()
@@ -327,7 +322,7 @@ You can re-bind the commands to any keys you prefer.")
   (interactive)
   (websocket-bridge-call-buffer "jump_prev_unknown_word")
   (setq-local dictionary-overlay-jump-direction 'prev)
-  (when dictonary-overlay-recenter-after-mark-and-jump
+  (when dictionary-overlay-recenter-after-mark-and-jump
     (recenter)))
 
 (defun dictionary-overlay-jump-first-unknown-word ()
@@ -364,7 +359,7 @@ depending on reliablity."
       (`next (dictionary-overlay-jump-next-unknown-word))
       (`prev (dictionary-overlay-jump-prev-unknown-word))))
   (dictionary-overlay-refresh-buffer)
-  (when dictonary-overlay-recenter-after-mark-and-jump
+  (when dictionary-overlay-recenter-after-mark-and-jump
     (recenter)))
 
 (defun dictionary-overlay-mark-word-unknown ()
@@ -376,7 +371,7 @@ depending on reliablity."
       (`next (dictionary-overlay-jump-next-unknown-word))
       (`prev (dictionary-overlay-jump-prev-unknown-word))))
   (dictionary-overlay-refresh-buffer)
-  (when dictonary-overlay-recenter-after-mark-and-jump
+  (when dictionary-overlay-recenter-after-mark-and-jump
     (recenter)))
 
 (defun dictionary-overlay-mark-word-smart ()
@@ -415,7 +410,7 @@ Based on value of `dictionary-overlay-just-unknown-words'"
     (dictionary-overlay-refresh-buffer)))
 
 (defun dictionary-overlay-lookup ()
-  "Look up word.
+  "Look up word in a third-parity dictionary.
 NOTE: third party dictionaries have their own implemention of
 getting words. Probably the word will be the same as the one
 dictionary-overlay gets."
@@ -423,7 +418,7 @@ dictionary-overlay gets."
   (funcall dictionary-overlay-lookup-with))
 
 (defun dictionary-add-overlay-from (begin end source target buffer-name)
-  "Add a overlay with range BEGIN to END for the translation SOURCE to TARGET in BUFFER-NAME."
+  "Add overlay for SOURCE and TARGET from BEGIN to END in BUFFER-NAME."
   (when (get-buffer buffer-name)
     (with-current-buffer buffer-name
       (let ((ov (make-overlay begin end (get-buffer buffer-name)))
@@ -449,9 +444,7 @@ dictionary-overlay gets."
              (overlay-put
               ov 'help-echo
               (format dictionary-overlay-translation-format target))))
-          (puthash hash-table-key ov dictionary-overlay-hash-table)))
-      )
-    ))
+          (puthash hash-table-key ov dictionary-overlay-hash-table))))))
 
 (defun dictionary-overlay-install ()
   "Install all python dependencies."
