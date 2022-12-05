@@ -316,7 +316,7 @@ NOTE: Retrieval of word pos relies on `dictionary-overlay-hash-table-keys',
 so currently won't work for auto jump after render buffer. Same as to
 `dictionary-overlay-last-unknown-word-pos'."
   (string-to-number
-   (car (string-split
+   (car (split-string
          (car (last dictionary-overlay-hash-table-keys)) ":"))))
 
 (defun dictionary-overlay-cursor-before-first-unknown-word-p ()
@@ -326,7 +326,7 @@ so currently won't work for auto jump after render buffer. Same as to
 (defun dictionary-overlay-last-unknown-word-pos ()
   "Beginning of last unnow word pos."
   (string-to-number
-   (car (string-split
+   (car (split-string
          (car dictionary-overlay-hash-table-keys) ":"))))
 
 (defun dictionary-overlay-cursor-after-last-unknown-word-p ()
