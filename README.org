@@ -78,7 +78,7 @@ git clone --depth=1 -b main https://github.com/ginqi7/dictionary-overlay ~/.emac
 | dictionary-overlay-translation-format  | 翻译展示的形式，默认是："(%s)"                                                                                                                                                                                     |
 | dictionary-overlay-translators         | 指定使用的翻译引擎以及使用顺序。默认包含'("local" "sdcv" "darwin" "web") 分别表示，本地dictionary.json  文件，内置的sdcv 词典，  MacOs 系统词典，以及web 翻译，你可以选择使用的词典以及顺序。 |
 
-
+*注意：手动修改dictionary-overlay-user-data-directory 目录下的文件时，请先关闭 dictionary-overlay 应用（运行dictionary-overlay-stop ），否则修改可能会被应用覆盖*
 
 
 
