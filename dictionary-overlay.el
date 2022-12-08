@@ -233,6 +233,7 @@ You can re-bind the commands to any keys you prefer.")
 (defun dictionary-overlay-start ()
   "Start dictionary-overlay."
   (interactive)
+  (websocket-bridge-server-start)
   (websocket-bridge-app-start
    "dictionary-overlay"
    "python3"
@@ -451,6 +452,9 @@ dictionary-overlay gets."
         (when (not (gethash hash-table-key dictionary-overlay-hash-table))
           ;; create an overly only when the key not exists
           (overlay-put ov 'face 'dictionary-overlay-unknownword)
+          (overlay-put ov 'evaporate t)
+          (unless dictionary-overlay-inhibit-keymap
+            (overlay-put ov 'keymap dictionary-overlay-map))
           (pcase dictionary-overlay-position
             ('after
              (progn
@@ -458,10 +462,7 @@ dictionary-overlay gets."
                 ov 'after-string
                 (propertize
                  (format dictionary-overlay-translation-format target)
-                 'face 'dictionary-overlay-translation))
-               (overlay-put ov 'evaporate t)
-               (unless dictionary-overlay-inhibit-keymap
-                 (overlay-put ov 'keymap dictionary-overlay-map))))
+                 'face 'dictionary-overlay-translation))))
             ('help-echo
              (overlay-put
               ov 'help-echo
