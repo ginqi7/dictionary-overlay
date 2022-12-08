@@ -82,7 +82,7 @@ def snapshot():
 
     Timer(30, snapshot).start()
 
-# dispatch message recived from Emacs.
+# dispatch message received from Emacs.
 async def on_message(message):
     info = json.loads(message)
     cmd = info[1][0].strip()
