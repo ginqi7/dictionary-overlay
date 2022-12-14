@@ -1,5 +1,6 @@
 ''' Add translation overlay for unknown words.'''
 import asyncio
+import json
 import os
 import re
 import shutil
@@ -14,11 +15,6 @@ from tokenizers.models import BPE
 from tokenizers.pre_tokenizers import Whitespace
 
 from pystardict import Dictionary
-
-try:
-    import orjson as json_parser
-except:
-    import json as json_parser
 
 snowball_stemmer =  snowballstemmer.stemmer('english')
 sdcv_dictionary_path = os.path.join(
@@ -71,10 +67,10 @@ def dump_dictionary_to_file():
     # read json file and combine it with json on memory to save it in file.
     # to avoid overwrite the manual modify by user.
     with open(dictionary_file_path, "r", encoding="utf-8") as f:
-        file_json = json_parser.load(f)
+        file_json = json.load(f)
     with open(dictionary_file_path, "w", encoding="utf-8") as f:
         dictionary = {**file_json, **dictionary}
-        json_parser.dump(dictionary, f, ensure_ascii=False, indent=4)
+        json.dump(dictionary, f, ensure_ascii=False, indent=4)
 
 def snapshot():
     try:
@@ -88,7 +84,7 @@ def snapshot():
 
 # dispatch message received from Emacs.
 async def on_message(message):
-    info = json_parser.loads(message)
+    info = json.loads(message)
     cmd = info[1][0].strip()
     if cmd == "render":
         sentence = info[1][1]
@@ -212,7 +208,7 @@ async def web_translate(word: str) -> list:
     try:
         if shutil.which("crow"):
             result = get_command_result(f'crow -t zh-CN --json -e {crow_engine} "{word}"')
-            return [json_parser.loads(result)["translation"]]
+            return [json.loads(result)["translation"]]
         import google_translate
         result = google_translate.translate(word, dst_lang='zh')
         return result["trans"]
@@ -302,7 +298,7 @@ async def init():
     global dictionary_file_path, knownwords_file_path, unknownwords_file_path, known_words, unknown_words, crow_engine, dictionary, translators
     crow_engine = await bridge.get_emacs_var("dictionary-overlay-crow-engine")
     crow_engine = crow_engine.strip('"')
-    translators = json_parser.loads(await bridge.get_emacs_var("dictionary-overlay-translators"))
+    translators = json.loads(await bridge.get_emacs_var("dictionary-overlay-translators"))
     user_data_directory = await bridge.get_emacs_var("dictionary-overlay-user-data-directory")
     user_data_directory = os.path.expanduser(user_data_directory.strip('"'))
     dictionary_file_path = os.path.join(user_data_directory, "dictionary.json")
@@ -311,7 +307,7 @@ async def init():
     create_user_data_file_if_not_exist(dictionary_file_path, "{}")
     create_user_data_file_if_not_exist(knownwords_file_path)
     create_user_data_file_if_not_exist(unknownwords_file_path)
-    with open(dictionary_file_path, "r", encoding="utf-8") as f: dictionary = json_parser.load(f)
+    with open(dictionary_file_path, "r", encoding="utf-8") as f: dictionary = json.load(f)
     with open(knownwords_file_path, "r", encoding="utf-8") as f:  known_words= set(f.read().split())
     with open(unknownwords_file_path, "r", encoding="utf-8") as f:  unknown_words= set(f.read().split())
 
