@@ -38,14 +38,14 @@
 ;;    Toggle current buffer.
 ;;  `dictionary-overlay-refresh-buffer'
 ;;    Refresh current buffer.
-;;  `dictionary-overlay-jump-next-unknown-word'
-;;    Jump to next unknown word.
-;;  `dictionary-overlay-jump-prev-unknown-word'
-;;    Jump to prev unknown word.
 ;;  `dictionary-overlay-jump-first-unknown-word'
 ;;    Jump to first unknown word.
 ;;  `dictionary-overlay-jump-last-unknown-word'
 ;;    Jump to last unknown word.
+;;  `dictionary-overlay-jump-next-unknown-word'
+;;    Jump to next unknown word.
+;;  `dictionary-overlay-jump-prev-unknown-word'
+;;    Jump to previous unknown word.
 ;;  `dictionary-overlay-jump-out-of-overlay'
 ;;    Jump out overlay so that we no longer in keymap.
 ;;  `dictionary-overlay-mark-word-known'
@@ -61,7 +61,7 @@
 ;;  `dictionary-overlay-mark-buffer-unknown'
 ;;    Mark all words as unknown, except those in `unknownwords' list.
 ;;  `dictionary-overlay-lookup'
-;;    Look up word.
+;;    Look up word in a third-parity dictionary.
 ;;  `dictionary-overlay-install'
 ;;    Install all python dependencies.
 ;;  `dictionary-overlay-install-google-translate'
@@ -103,6 +103,9 @@
 ;;  `dictionary-overlay-translators'
 ;;    The translators and theirs's order.
 ;;    default = '("local" "sdcv" "darwin" "web")
+;;  `dictionary-overlay-sdcv-dictionary-path'
+;;    User defined sdcv dictionary path.
+;;    default = nil
 
 ;;; Code:
 
@@ -213,6 +216,11 @@ next overlay."
   "The translators and theirs's order."
   :group 'dictionary-overlay
   :type '(list))
+
+(defcustom dictionary-overlay-sdcv-dictionary-path nil
+  "User defined sdcv dictionary path."
+  :group 'dictionary-overlay
+  :type '(string))
 
 (defvar dictionary-overlay-map
   (let ((map (make-sparse-keymap)))

@@ -17,10 +17,8 @@ from tokenizers.pre_tokenizers import Whitespace
 from pystardict import Dictionary
 
 snowball_stemmer =  snowballstemmer.stemmer('english')
-sdcv_dictionary_path = os.path.join(
-    os.path.dirname(__file__), "resources", "kdic-ec-11w"
-)
-sdcv_dictionary = Dictionary(sdcv_dictionary_path, in_memory=True)
+sdcv_dictionary = None
+
 
 tokenizer = Tokenizer(BPE())
 pre_tokenizer = Whitespace()
@@ -33,11 +31,11 @@ def in_or_stem_in(word:str, words) -> bool:
 
 async def parse(sentence: str):
     '''parse the sentence'''
-    only_unknown_words = await bridge.get_emacs_var(
+    only_unknown_words = await get_emacs_var(
         "dictionary-overlay-just-unknown-words"
     )
     tokens = pre_tokenizer.pre_tokenize_str(sentence)
-    if only_unknown_words == "true":
+    if only_unknown_words :
         tokens = [token for token in tokens if in_or_stem_in(token[0].lower(), unknown_words)]
     else:
         tokens = [token for token in tokens if new_word_p(token[0].lower())]
@@ -293,14 +291,31 @@ async def main():
     global bridge
     bridge = websocket_bridge_python.bridge_app_regist(on_message)
     await asyncio.gather(init(), bridge.start())
-
+    
+async def get_emacs_var(var_name: str):
+    "Get Emacs variable and format it."
+    var_value = await bridge.get_emacs_var(var_name)
+    if isinstance(var_value, str):
+        var_value = var_value.strip('"')
+    print(f'{var_name} : {var_value}')
+    if var_value == 'null':
+        return None
+    return var_value
+    
 async def init():
-    global dictionary_file_path, knownwords_file_path, unknownwords_file_path, known_words, unknown_words, crow_engine, dictionary, translators
-    crow_engine = await bridge.get_emacs_var("dictionary-overlay-crow-engine")
-    crow_engine = crow_engine.strip('"')
-    translators = json.loads(await bridge.get_emacs_var("dictionary-overlay-translators"))
-    user_data_directory = await bridge.get_emacs_var("dictionary-overlay-user-data-directory")
-    user_data_directory = os.path.expanduser(user_data_directory.strip('"'))
+    "Init User data."
+    global dictionary_file_path, knownwords_file_path, unknownwords_file_path, known_words, unknown_words, crow_engine, dictionary, translators, sdcv_dictionary
+    sdcv_dictionary_path = await get_emacs_var("dictionary-overlay-sdcv-dictionary-path")
+    if not sdcv_dictionary_path:
+        sdcv_dictionary_path = os.path.join(
+            os.path.dirname(__file__), "resources", "kdic-ec-11w"
+        )
+    sdcv_dictionary = Dictionary(sdcv_dictionary_path, in_memory=True)
+    print("Sdcv Dictionary load success.")
+    crow_engine = await get_emacs_var("dictionary-overlay-crow-engine")
+    translators = json.loads(await get_emacs_var("dictionary-overlay-translators"))
+    user_data_directory = await get_emacs_var("dictionary-overlay-user-data-directory")
+    user_data_directory = os.path.expanduser(user_data_directory)
     dictionary_file_path = os.path.join(user_data_directory, "dictionary.json")
     knownwords_file_path = os.path.join(user_data_directory, "knownwords.txt")
     unknownwords_file_path = os.path.join(user_data_directory, "unknownwords.txt")

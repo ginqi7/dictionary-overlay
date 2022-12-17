@@ -42,41 +42,42 @@ git clone --depth=1 -b main https://github.com/ginqi7/dictionary-overlay ~/.emac
 #+end_src
 
 * 命令
-| 命令                                        | 说明                                                       |
-|---------------------------------------------+------------------------------------------------------------|
-| dictionary-overlay-start                    | 启动 dictionary-overlay 应用                               |
-| dictionary-overlay-stop                     | 退出 dictionary-overlay 应用                               |
-| dictionary-overlay-restart                  | 重启 dictionary-overlay 应用                               |
-| dictionary-overlay-render-buffer            | 使用翻译渲染当前 buffer                                    |
-| dictionary-overlay-toggle                   | 打开\关闭翻译渲染当前 buffer                               |
-| dictionary-overlay-lookup                   | 查询当前词, 默认 Emacs 自带词典。自定义见选项
-| dictionary-overlay-jump-next-unknown-word   | 跳转到下一个生词                                           |
-| dictionary-overlay-jump-prev-unknown-word   | 跳转到上一个生词                                           |
-| dictionary-overlay-jump-first-unknown-word  | 跳转到第一个生词                                           |
-| dictionary-overlay-jump-last-unknown-word   | 跳转到最后一个生词                                          |
-| dictionary-overlay-jump-out-overlay         | 光标跳到词末，离开overlay，恢复正常keymap                    |
-| dictionary-overlay-mark-word-known          | 标记当前单词为“已知”                                       |
-| dictionary-overlay-mark-word-unknown        | 标记当前单词为“生词”                                       |
-| dictionary-overlay-mark-word-smart          | 生词本模式时，默认标记当前单词为“未知”，透析模式时，标为“已知”    |
-| dictionary-overlay-mark-word-smart-reversely| 功能同上，但生词本模式时标记为“已知”，透析模式时，标为”未知“     |
-| dictionary-overlay-mark-buffer              | 标签当前 buffer 中所有未标记为“生词”的单词全为“已知”       |
-| dictionary-overlay-mark-buffer-unknown      | 标签当前 buffer 中所有未标记为“生词”的单词全为“未知”       |
-| dictionary-overlay-install                  | 安装 dictionary-overlay 所依赖的必选 python 包             |
-| dictionary-overlay-install-google-translate | 安装 google-translate                                      |
-| dictionary-overlay-modify-translation       | 修改当前单词的“翻译”，可以选择词典中的翻译，也可以手动输入 |
+| 命令                                         | 说明                                                           |
+|----------------------------------------------+----------------------------------------------------------------|
+| dictionary-overlay-start                     | 启动 dictionary-overlay 应用                                   |
+| dictionary-overlay-stop                      | 退出 dictionary-overlay 应用                                   |
+| dictionary-overlay-restart                   | 重启 dictionary-overlay 应用                                   |
+| dictionary-overlay-render-buffer             | 使用翻译渲染当前 buffer                                        |
+| dictionary-overlay-toggle                    | 打开\关闭翻译渲染当前 buffer                                   |
+| dictionary-overlay-lookup                    | 查询当前词, 默认 Emacs 自带词典。自定义见选项                  |
+| dictionary-overlay-jump-next-unknown-word    | 跳转到下一个生词                                               |
+| dictionary-overlay-jump-prev-unknown-word    | 跳转到上一个生词                                               |
+| dictionary-overlay-jump-first-unknown-word   | 跳转到第一个生词                                               |
+| dictionary-overlay-jump-last-unknown-word    | 跳转到最后一个生词                                             |
+| dictionary-overlay-jump-out-overlay          | 光标跳到词末，离开overlay，恢复正常keymap                      |
+| dictionary-overlay-mark-word-known           | 标记当前单词为“已知”                                           |
+| dictionary-overlay-mark-word-unknown         | 标记当前单词为“生词”                                           |
+| dictionary-overlay-mark-word-smart           | 生词本模式时，默认标记当前单词为“未知”，透析模式时，标为“已知” |
+| dictionary-overlay-mark-word-smart-reversely | 功能同上，但生词本模式时标记为“已知”，透析模式时，标为”未知“   |
+| dictionary-overlay-mark-buffer               | 标签当前 buffer 中所有未标记为“生词”的单词全为“已知”           |
+| dictionary-overlay-mark-buffer-unknown       | 标签当前 buffer 中所有未标记为“生词”的单词全为“未知”           |
+| dictionary-overlay-install                   | 安装 dictionary-overlay 所依赖的必选 python 包                 |
+| dictionary-overlay-install-google-translate  | 安装 google-translate                                          |
+| dictionary-overlay-modify-translation        | 修改当前单词的“翻译”，可以选择词典中的翻译，也可以手动输入     |
 
 * 选项
 
-| 选项                                   | 说明                                                                                                                                                                                                               |
-|----------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| dictionary-overlay-just-unknown-words  | t 时使用“生词本”模式，nil 为“透析阅读”模式，默认为 t                                                                                                                                                               |
-| dictionary-overlay-user-data-directory | 用户数据存放 目录，默认值为：“~/.emacs.d/dictionary-overlay-data”                                                                                                                                                  |
-| dictionary-overlay-position            | 显示翻译的位置：词后，help-echo, 默认在词后                                                                                                                                                                        |
-| dictionary-overlay-lookup-with         | 查词词典设置：默认系统词典。可自定义第三方包，比如 youdao-dictionary, popweb                                                                                                                                       |
-| dictionary-overlay-inihibit-keymap     | t 时关闭 keymap, 默认为 nil                                                                                                                                                                                        |
-| dictionary-overlay-auto-jump-after     | 可选项：标为生词 mark-word-known, 标为熟词 mark-word-unknwon, 刷新 render-buffer                                                                                                                                   |
-| dictionary-overlay-translation-format  | 翻译展示的形式，默认是："(%s)"                                                                                                                                                                                     |
-| dictionary-overlay-translators         | 指定使用的翻译引擎以及使用顺序。默认包含'("local" "sdcv" "darwin" "web") 分别表示，本地dictionary.json  文件，内置的sdcv 词典，  MacOs 系统词典，以及web 翻译，你可以选择使用的词典以及顺序。 |
+| 选项                                    | 说明                                                                                                                                                                                          |
+|-----------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| dictionary-overlay-just-unknown-words   | t 时使用“生词本”模式，nil 为“透析阅读”模式，默认为 t                                                                                                                                          |
+| dictionary-overlay-user-data-directory  | 用户数据存放 目录，默认值为：“~/.emacs.d/dictionary-overlay-data”                                                                                                                             |
+| dictionary-overlay-position             | 显示翻译的位置：词后，help-echo, 默认在词后                                                                                                                                                   |
+| dictionary-overlay-lookup-with          | 查词词典设置：默认系统词典。可自定义第三方包，比如 youdao-dictionary, popweb                                                                                                                  |
+| dictionary-overlay-inihibit-keymap      | t 时关闭 keymap, 默认为 nil                                                                                                                                                                   |
+| dictionary-overlay-auto-jump-after      | 可选项：标为生词 mark-word-known, 标为熟词 mark-word-unknwon, 刷新 render-buffer                                                                                                              |
+| dictionary-overlay-translation-format   | 翻译展示的形式，默认是："(%s)"                                                                                                                                                                |
+| dictionary-overlay-translators          | 指定使用的翻译引擎以及使用顺序。默认包含'("local" "sdcv" "darwin" "web") 分别表示，本地dictionary.json  文件，内置的sdcv 词典，  MacOs 系统词典，以及web 翻译，你可以选择使用的词典以及顺序。 |
+| dictionary-overlay-sdcv-dictionary-path | 默认值 nil, 此时会使用 dictionary-overlay 自带 的kdic-ec-11w 词典，如果你有自定义的 StarDict 词典，你可以设定自己的词典路径。                                                                 |
 
 *注意：手动修改dictionary-overlay-user-data-directory 目录下的文件时，请先关闭 dictionary-overlay 应用（运行dictionary-overlay-stop ），否则修改可能会被应用覆盖*
 
@@ -116,15 +117,15 @@ face `dictionary-overlay-unknownword` 如果用户不自行定义，那么不会
 * 快捷键
 当 ~(setq dictionary-overlay-inihibit-keymap nil)~ 可以使用若干自带的快捷键，当point 在一个生词的overlay 之上时，可以：
 
-| d        | dictionary-overlay-lookup                    | 查当前词                                      |
+| d        | dictionary-overlay-lookup                    | 查当前词                                     |
 | r        | dictionary-overlay-refresh-buffer            | 刷新buffer                                   |
-| p        | dictionary-overlay-jump-prev-unknown-word    | 跳转到上一个生词                              |
-| n        | dictionary-overlay-jump-next-unknown-word    | 跳转到下一个生词                              |
-| <        | dictionary-overlay-jump-first-unknown-word   | 跳转到第一个生词                              |
-| >        | dictionary-overlay-jump-last-unknown-word    | 跳转到最后一个生词                            |
-| m        | dictionary-overlay-mark-word-smart           | 透析模式，把单词标记为“熟词”                   |
-| M        | dictionary-overlay-mark-word-smart-reversely | 生词本模式，把单词标记为“熟词”                 |
-| c        | dictionary-overlay-modify-translation        | 修改翻译                                      |
+| p        | dictionary-overlay-jump-prev-unknown-word    | 跳转到上一个生词                             |
+| n        | dictionary-overlay-jump-next-unknown-word    | 跳转到下一个生词                             |
+| <        | dictionary-overlay-jump-first-unknown-word   | 跳转到第一个生词                             |
+| >        | dictionary-overlay-jump-last-unknown-word    | 跳转到最后一个生词                           |
+| m        | dictionary-overlay-mark-word-smart           | 透析模式，把单词标记为“熟词”                 |
+| M        | dictionary-overlay-mark-word-smart-reversely | 生词本模式，把单词标记为“熟词”               |
+| c        | dictionary-overlay-modify-translation        | 修改翻译                                     |
 | <escape> | dictionary-overlay-jump-out-of-overlay       | 跳出overlay 让快捷键在非overlay 词语中失效。 |
 
 快捷键只在标记为生词的overlay 上生效，因此 ~dictionary-overlay-mark-word-unknown~ 还需要自行绑定需要的快捷键
