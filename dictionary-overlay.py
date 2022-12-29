@@ -82,58 +82,62 @@ def snapshot():
 
 # dispatch message received from Emacs.
 async def on_message(message):
-    info = json.loads(message)
-    cmd = info[1][0].strip()
-    if cmd == "render":
-        sentence = info[1][1]
-        buffer_name = info[1][3]
-        await render(sentence, buffer_name)
-        await run_and_log("(dictionary-overlay-refresh-overlays)")
-    elif cmd == "jump_next_unknown_word":
-        sentence = info[1][1]
-        point = info[1][2]
-        await jump_next_unknown_word(sentence, point)
-    elif cmd == "jump_prev_unknown_word":
-        sentence = info[1][1]
-        point = info[1][2]
-        await jump_prev_unknown_word(sentence, point)
-    elif cmd == "mark_word_known":
-        word = info[1][1]
-        stem_word = snowball_stemmer.stemWord(word)
-        if word in unknown_words:
-            unknown_words.remove(word)
-        if stem_word in unknown_words:
-            unknown_words.remove(stem_word)
-        known_words.add(word)
-        known_words.add(stem_word)
-    elif cmd == "mark_word_unknown":
-        word = info[1][1]
-        stem_word = snowball_stemmer.stemWord(word)
-        if word in known_words:
-            known_words.remove(word)
-        if stem_word in known_words:
-            known_words.remove(stem_word)
-        unknown_words.add(word)
-        unknown_words.add(stem_word)
-    elif cmd == "mark_buffer":
-        sentence = info[1][1]
-        mark_buffer(sentence)
-    elif cmd == "mark_buffer_unknown":
-        sentence = info[1][1]
-        mark_buffer_unknown(sentence)
-    elif cmd == "modify_translation":
-        # give user a selection to modify word translation.
-        # combine with update_translation
-        word = info[1][1]
-        await modify_translation(word)
-    elif cmd == "update_translation":
-        # update translate in memory
-        word = info[1][1]
-        translation = info[1][2]
-        dictionary[word]=translation
+    try:
+        info = json.loads(message)
+        cmd = info[1][0].strip()
+        if cmd == "render":
+            sentence = info[1][1]
+            buffer_name = info[1][3]
+            await render(sentence, buffer_name)
+            await run_and_log("(dictionary-overlay-refresh-overlays)")
+        elif cmd == "jump_next_unknown_word":
+            sentence = info[1][1]
+            point = info[1][2]
+            await jump_next_unknown_word(sentence, point)
+        elif cmd == "jump_prev_unknown_word":
+            sentence = info[1][1]
+            point = info[1][2]
+            await jump_prev_unknown_word(sentence, point)
+        elif cmd == "mark_word_known":
+            word = info[1][1]
+            stem_word = snowball_stemmer.stemWord(word)
+            if word in unknown_words:
+                unknown_words.remove(word)
+            if stem_word in unknown_words:
+                unknown_words.remove(stem_word)
+            known_words.add(word)
+            known_words.add(stem_word)
+        elif cmd == "mark_word_unknown":
+            word = info[1][1]
+            stem_word = snowball_stemmer.stemWord(word)
+            if word in known_words:
+                known_words.remove(word)
+            if stem_word in known_words:
+                known_words.remove(stem_word)
+            unknown_words.add(word)
+            unknown_words.add(stem_word)
+        elif cmd == "mark_buffer":
+            sentence = info[1][1]
+            mark_buffer(sentence)
+        elif cmd == "mark_buffer_unknown":
+            sentence = info[1][1]
+            mark_buffer_unknown(sentence)
+        elif cmd == "modify_translation":
+            # give user a selection to modify word translation.
+            # combine with update_translation
+            word = info[1][1]
+            await modify_translation(word)
+        elif cmd == "update_translation":
+            # update translate in memory
+            word = info[1][1]
+            translation = info[1][2]
+            dictionary[word]=translation
 
-    else:
-        print(f"not fount handler for {cmd}", flush=True)
+        else:
+            print(f"not fount handler for {cmd}", flush=True)
+    except:
+        import traceback
+        print(traceback.format_exc())
 
 async def modify_translation(word: str):
     "let the user to modify default translation"
