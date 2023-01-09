@@ -222,6 +222,10 @@ next overlay."
   :group 'dictionary-overlay
   :type '(string))
 
+(defcustom dictionary-overlay-python "python3"
+  "The Python interpreter."
+  :type 'string)
+
 (defvar dictionary-overlay-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "d") #'dictionary-overlay-lookup)
@@ -244,7 +248,7 @@ You can re-bind the commands to any keys you prefer.")
   (websocket-bridge-server-start)
   (websocket-bridge-app-start
    "dictionary-overlay"
-   "python3"
+   dictionary-overlay-python
    dictionary-overlay-py-path))
 
 (defun dictionary-overlay-stop ()
