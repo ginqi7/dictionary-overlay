@@ -59,15 +59,7 @@ def dump_unknownwords_to_file():
             f.write(f"{word}\n")
 
 def dump_dictionary_to_file():
-    '''dump dictionary json to file'''
-    global dictionary
-    file_json = {}
-    # read json file and combine it with json on memory to save it in file.
-    # to avoid overwrite the manual modify by user.
-    with open(dictionary_file_path, "r", encoding="utf-8") as f:
-        file_json = json.load(f)
     with open(dictionary_file_path, "w", encoding="utf-8") as f:
-        dictionary = {**file_json, **dictionary}
         json.dump(dictionary, f, ensure_ascii=False, indent=4)
 
 def snapshot():
