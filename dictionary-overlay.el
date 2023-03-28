@@ -28,46 +28,70 @@
 ;;
 ;;  `dictionary-overlay-start'
 ;;    Start dictionary-overlay.
+;;    Keybinding: M-x dictionary-overlay-start
 ;;  `dictionary-overlay-stop'
 ;;    Stop dictionary-overlay.
+;;    Keybinding: M-x dictionary-overlay-stop
 ;;  `dictionary-overlay-restart'
 ;;    Restart dictionary-overlay.
+;;    Keybinding: M-x dictionary-overlay-restart
 ;;  `dictionary-overlay-render-buffer'
 ;;    Render current buffer.
+;;    Keybinding: M-x dictionary-overlay-render-buffer
 ;;  `dictionary-overlay-toggle'
 ;;    Toggle current buffer.
+;;    Keybinding: M-x dictionary-overlay-toggle
 ;;  `dictionary-overlay-refresh-buffer'
 ;;    Refresh current buffer.
+;;    Keybinding: r
 ;;  `dictionary-overlay-jump-first-unknown-word'
 ;;    Jump to first unknown word.
+;;    Keybinding: <
 ;;  `dictionary-overlay-jump-last-unknown-word'
 ;;    Jump to last unknown word.
+;;    Keybinding: >
 ;;  `dictionary-overlay-jump-next-unknown-word'
 ;;    Jump to next unknown word.
+;;    Keybinding: n
 ;;  `dictionary-overlay-jump-prev-unknown-word'
 ;;    Jump to previous unknown word.
+;;    Keybinding: p
 ;;  `dictionary-overlay-jump-out-of-overlay'
 ;;    Jump out overlay so that we no longer in keymap.
+;;    Keybinding: <escape>
 ;;  `dictionary-overlay-mark-word-known'
 ;;    Mark current word known.
+;;    Keybinding: M-x dictionary-overlay-mark-word-known
 ;;  `dictionary-overlay-mark-word-unknown'
 ;;    Mark current word unknown.
+;;    Keybinding: M-x dictionary-overlay-mark-word-unknown
 ;;  `dictionary-overlay-mark-word-smart'
 ;;    Smartly mark current word as known or unknown.
+;;    Keybinding: M-x dictionary-overlay-mark-word-smart
 ;;  `dictionary-overlay-mark-word-smart-reversely'
 ;;    Smartly mark current word known or unknown smartly, but reversely.
+;;    Keybinding: M
 ;;  `dictionary-overlay-mark-buffer'
 ;;    Mark all words as known, except those in `unknownwords' list.
+;;    Keybinding: M-x dictionary-overlay-mark-buffer
 ;;  `dictionary-overlay-mark-buffer-unknown'
 ;;    Mark all words as unknown, except those in `unknownwords' list.
+;;    Keybinding: M-x dictionary-overlay-mark-buffer-unknown
 ;;  `dictionary-overlay-lookup'
 ;;    Look up word in a third-parity dictionary.
+;;    Keybinding: d
 ;;  `dictionary-overlay-install'
 ;;    Install all python dependencies.
+;;    Keybinding: M-x dictionary-overlay-install
+;;  `dictionary-overlay-macos-install-core-services'
+;;    Install all python dependencies.
+;;    Keybinding: M-x dictionary-overlay-macos-install-core-services
 ;;  `dictionary-overlay-install-google-translate'
 ;;    Install all google-translate dependencies.
+;;    Keybinding: M-x dictionary-overlay-install-google-translate
 ;;  `dictionary-overlay-modify-translation'
 ;;    Modify current word's translation.
+;;    Keybinding: c
 ;;
 ;;; Customizable Options:
 ;;
@@ -106,6 +130,9 @@
 ;;  `dictionary-overlay-sdcv-dictionary-path'
 ;;    User defined sdcv dictionary path.
 ;;    default = nil
+;;  `dictionary-overlay-python'
+;;    The Python interpreter.
+;;    default = "python3"
 
 ;;; Code:
 
@@ -502,6 +529,27 @@ dictionary-overlay gets."
     (split-window-below)
     (other-window 1)
     (switch-to-buffer process-buffer-name)))
+
+(defun dictionary-overlay-macos-install-core-services ()
+  "Install all python dependencies."
+  (interactive)
+  (let ((process-environment
+         (cons "NO_COLOR=true" process-environment))
+        (process-buffer-name "*dictionary-overlay-install*"))
+    (set-process-sentinel
+     (start-process "dictionary-overlay-install"
+                    process-buffer-name
+                    "pip" "install"
+                    "pyobjc-framework-CoreServices"
+                    )
+     (lambda (p _m)
+       (when (eq 0 (process-exit-status p))
+         (with-current-buffer (process-buffer p)
+           (ansi-color-apply-on-region (point-min) (point-max))))))
+    (split-window-below)
+    (other-window 1)
+    (switch-to-buffer process-buffer-name)))
+
 
 (defun dictionary-overlay-install-google-translate ()
   "Install all google-translate dependencies."
