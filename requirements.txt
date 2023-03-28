@@ -1,4 +1,4 @@
-sexpdata==0.0.3
+sexpdata
 six==1.16.0
 snowballstemmer==2.2.0
 tokenizers==0.13.2
