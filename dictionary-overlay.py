@@ -25,6 +25,7 @@ pre_tokenizer = Whitespace()
 dictionary = {}
 translators = []
 
+
 def in_or_stem_in(word:str, words) -> bool:
     '''Check a word or word stem in the word list'''
     return word in words or snowball_stemmer.stemWord(word) in words
@@ -216,6 +217,24 @@ async def web_translate(word: str) -> list:
         msg = "[Dictionary-overlay]web-translate error, check your network. or run (websocket-bridge-app-open-buffer 'dictionary-overlay) see the error details."
         await bridge.message_to_emacs(msg)
         return []
+    
+async def ipa_translate(word: str) -> list:
+    '''translate word by ipa'''
+    try:
+        import eng_to_ipa as ipa
+        result = ipa.convert(word)
+        return [result]
+    except ImportError:
+        msg= f"[Dictionary-overlay]you do not have a ipa dictionary installed."
+        print(msg)
+        await bridge.message_to_emacs(msg)
+        return []
+    except Exception as e:
+        print (e)
+        msg = "[Dictionary-overlay]web-translate error, check your network. or run (websocket-bridge-app-open-buffer 'dictionary-overlay) see the error details."
+        await bridge.message_to_emacs(msg)
+        return []
+
 
 def extract_translations(msg:str) -> list:
     '''extract translations by regex'''
@@ -244,6 +263,8 @@ async def translate_by_translator(word: str, translator: str) -> list:
         return macos_dictionary_translate(word)
     if translator == "web":
         return await web_translate(word)
+    if translator == "ipa":
+        return await ipa_translate(word)
     return []
 
 async def translate(word: str) -> str:

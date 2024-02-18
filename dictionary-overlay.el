@@ -249,7 +249,7 @@ next overlay."
   :group 'dictionary-overlay
   :type '(string))
 
-(defcustom dictionary-overlay-python "python3"
+(defcustom dictionary-overlay-python (executable-find "python3")
   "The Python interpreter."
   :type 'string)
 
@@ -520,7 +520,7 @@ dictionary-overlay gets."
     (set-process-sentinel
      (start-process "dictionary-overlay-install"
                     process-buffer-name
-                    "pip" "install" "-r"
+                    (executable-find "pip3") "install" "-r"
                     dictionary-overlay-py-requirements-path)
      (lambda (p _m)
        (when (eq 0 (process-exit-status p))
@@ -539,7 +539,7 @@ dictionary-overlay gets."
     (set-process-sentinel
      (start-process "dictionary-overlay-install"
                     process-buffer-name
-                    "pip" "install"
+                    (executable-find "pip3") "install"
                     "pyobjc-framework-CoreServices"
                     )
      (lambda (p _m)
@@ -563,7 +563,8 @@ dictionary-overlay gets."
           (format
            (concat "git clone https://git.ookami.one/cgit/google-translate/ %s; "
                    "cd %s; "
-                   "pip install build; "
+                   (executable-find "pip3")
+                   " install build; "
                    "make install")
            temp-install-directory temp-install-directory)))
     (set-process-sentinel
