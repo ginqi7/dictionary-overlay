@@ -520,7 +520,8 @@ dictionary-overlay gets."
     (set-process-sentinel
      (start-process "dictionary-overlay-install"
                     process-buffer-name
-                    (executable-find "pip3") "install" "-r"
+                    dictionary-overlay-python
+                    "-m" "pip" "install" "-r"
                     dictionary-overlay-py-requirements-path)
      (lambda (p _m)
        (when (eq 0 (process-exit-status p))
@@ -539,7 +540,8 @@ dictionary-overlay gets."
     (set-process-sentinel
      (start-process "dictionary-overlay-install"
                     process-buffer-name
-                    (executable-find "pip3") "install"
+                    dictionary-overlay-python
+                    "-m" "pip" "install"
                     "pyobjc-framework-CoreServices"
                     )
      (lambda (p _m)
@@ -563,9 +565,8 @@ dictionary-overlay gets."
           (format
            (concat "git clone https://git.ookami.one/cgit/google-translate/ %s; "
                    "cd %s; "
-                   (executable-find "pip3")
-                   " install build; "
-                   "make install")
+                   dictionary-overlay-python
+                   " -m " "pip" " install build; " "make install")
            temp-install-directory temp-install-directory)))
     (set-process-sentinel
      (start-process-shell-command
