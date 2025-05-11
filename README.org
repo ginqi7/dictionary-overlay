@@ -1,4 +1,8 @@
-#+title: Dictionary-overlay
+#+title: Dictionary Overlay
+
+
+#+html: <p align="center"> <img src="logo.svg" alt="logo" width="150" /> </p>
+#+html: <p align="center"><i>Dictionary Overlay</i></p>
 
 * 目标
 辅助英文较弱的 Emacser 进行英文阅读。提供了两种能力：
